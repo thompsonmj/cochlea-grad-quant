@@ -1,37 +1,33 @@
 function id = genidcode(varargin)
-
-% Inputs
-%   1. nChar
-%   2. ?
-%   idList - to check against for uniqueness (should make separate func) 
-%
-% PropertyValues
-%   'Alpha' {'on','off'} - default on
-%   'AllCap' {'on','off'} - default on
-%   'MixCap' {'on','off'} - default off
-%   'Numeric' {'on','off'} - default on
-%   'Symbol' {'on','off'} - default off
-%   AllCap and MixCap can only be accepted iff Alpha is 'on'.
-%   Throw error if Alpha, Numeric, and Symbol are all 'off'.
-
-
+% GENIDCODE creates a random, all-caps, alphanumeric ID that always begins
+% with a letter. Defaults to 8-characters. Providing a numeric argument
+% specifies a custom lenth.
 
 switch nargin
     case 0
         disp('Generating default 8-character alphanumeric code.')
         nChar = 8;
-        syms = ['A':'Z' '0':'9'];
-        idx = randi(numel(syms),[1 nChar]);
-        id = syms(idx);        
+        id = genid(nChar);
     case 1 
-        nChar = varargin{1};
-        
-    case 2
-        ...
-    case 3
-        ...
+        in = varargin{1};
+        if isnumeric(in)
+            nChar = round( varargin{1} );
+            id = genid(nChar);
+        else
+            error('Invalid input type.')
+        end
     otherwise
-        disp()
+        error('Invalid number of arguments.')
 end
+
+    function id = genid(nChar)
+        charset1 = ['A':'Z'];
+        charset = ['A':'Z' '0':'9'];
+        idx = randi(numel(charset1));
+        idx = horzcat( idx, randi(numel(charset),[1 nChar-1]) );
+        id = charset(idx);  
+    end
+
+assert(isvarname(id),'Invalid variable name generated.');
 
 end

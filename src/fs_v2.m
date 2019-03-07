@@ -24,6 +24,7 @@ source = [PathName FileName];
 copyfile(source,currentFolder);                                            % Create a temporary copy of the spreadsheet into the current directory for analysis.
 
 d = size(sheets);                                                          % Count the number of channel sheets in the Excel file.
+nSheets = size(sheets,2);
 n = d(2);                                                                  % Store count in variable n.
 c = [17 17 17];
 for i = 1:n                                                                % Iterate over all sheets (channels).
