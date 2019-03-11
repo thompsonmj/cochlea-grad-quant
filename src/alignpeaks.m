@@ -1,50 +1,51 @@
 function [alRawDat,alSmDat] = alignpeaks(RawDat,x,mode,PERCENTILE)
 % ALIGNPEAKS 
+%%% Add 'method' input to specify centroid/midrange/abspeak, etc???
 %
 % Input:
-%   RawDat: struct containing raw data from each channel to be aligned.
-%   x: 1D raw radial position data.
+%   RawDat: struct containing raw columnar data from each channel to be aligned.
+%       Rows: position indices, Columns: optical sections
+%       Format: RawDat.Tgt1, RawDat.Tgt2, ...
+%   x: 1D raw circumferencial position data.
 %   mode: 
 
 %%%CONSIDER>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-% Assuming identical image resolution of inputs, a constant smoothing
-% window should be OK. For images of varying resolution, size of smoothing
-% window will cover more or less physical space and result in different
-% degrees of smoothness. For robustness, This should detect image
-% resolution and alter window accordingly.
-% E.g. One raw image is 512x512 and another is 1024x1024. The smoothing
-% window for the first should be half the size of the second.
-% The resolution could be inferred by the distance between raw RadPsn data
-% points.
-% 1024x1024 resolution: average diff = 0.3108
-% 512x512 resolution: average diff = 0.6239
-% Very consistant, std for each is O(1e-4)
-
-% IMPORTANT
-% Windows at tails do now see the opposite tail. Need to append to get
-% a signal that can be shifted without discontinuities.
+% Using multiple optical sections (>=3) per cryosection to get a less noisy estimate of the true
+% profiles. 
+% Issues: 
+%   1. Intensities decrease above/below mid optical plane.
+%   Possible causes:
+%       a. out-of-plane fluorescence
+%   Possibile methods to address this problem:
+%       a. Normalize optical sections within a cryosection and rescale to original scale.
+%           a1. Rescale to mean
+%           a2. Rescale to max
+%       b. Use optical theory (e.g. PSF) to scale profiles
+%   2. Sox2 stain behaves differently than pSmad/Topro3 in some cases. I.e., signal is much lower at
+%   lower optical sections than higher ones
 %%%CONSIDER<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 
 %%%Don't use cochlea 17 for troubleshooting.
 alSmDat = struct;
 
-T = fieldnames( RawDat );
+T = fieldnames(RawDat);
 nTgts = size(T,1);
 
-% Smooth raw data. Append tails with data from opposite tail so the moving
-% window sees a semi-continuous signal.
+%% Smooth raw data. Append tails with data from opposite tail so windows see continuous signals.
+
+% Adjust smoothing window size based on image resolution.
 % Adequate window size determined by eye.
 if mean(diff(x)) > 0.3 && mean(diff(x)) < 0.4   
     % Corresponds to 1024 x 1024 image resolution.
-    win = 10;
+    win = 550;
 elseif mean(diff(x)) > 0.6 && mean(diff(x)) < 0.7
     % Corresponds to 512 x 512 image resolution.
-    win = 300;
+    win = 225;
 else 
     error('Invalid resolution.');
 end
         
-    
+
 for iTgt = 1:nTgts
 
     profileSet = RawDat.(T{iTgt});
