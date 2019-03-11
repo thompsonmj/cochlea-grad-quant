@@ -4,7 +4,7 @@ function normOutput = normdat(profileSet)
 
 %%%load('Data8DMU_test.mat');
 %%%load('Data8DMU_Noi_test.mat'); % Replaced with below
-load('psmadDat.mat');
+%%%load('psmadDat.mat');
 
 %%%nEmbryos = 5000; %embryoSize;  % Here you could just change the number of embryos you would 
                   %like to use in the normalization.
@@ -16,12 +16,12 @@ load('psmadDat.mat');
 %%%xScaled = (0:0.02:1)'; % Replaced with below
 xScaled = (0:1/(nPts-1):1)';
 %%%dpp_matrix = zeros(51,nEmbryos);
-dpp_noise_matrix = zeros(nPts,nProfiles);
-dpp_extr_matrix = zeros(nPts,nProfiles);
-dpp_extr_matrix2 = zeros(nPts,nProfiles);
-dpp_int_matrix = zeros(nPts,nProfiles);
+profileNoiseMatrix = zeros(nPts,nProfiles);
+profileExtrMatrix = zeros(nPts,nProfiles);
+profileExtrMatrix2 = zeros(nPts,nProfiles);
+profileIntMatrix = zeros(nPts,nProfiles);
 
-index = 1;
+idx = 1;
 
 % Specific call to normalization algorithms
     for i = 1:nProfiles
@@ -34,14 +34,14 @@ index = 1;
 % Normalization    
  for j = 1:nProfiles   
     %%%dpp_matrix(:,j) = Data_ini(:,j);
-    dpp_noise_matrix(:,j) = Data(:,j);
-    dpp_extr_matrix(:,j) = extrema_norm(Data(:,j));
-    dpp_extr_matrix2(:,j) = extrema_norm2(Data(:,j));
-    dpp_int_matrix(:,j) = integral_norm(Data(:,j));
+    profileNoiseMatrix(:,j) = Data(:,j);
+    profileExtrMatrix(:,j) = extremanorm(Data(:,j));
+    profileExtrMatrix2(:,j) = extremanorm2(Data(:,j));
+    profileIntMatrix(:,j) = integral_norm(Data(:,j));
 end
         
 % Minimizing Error Normalization
-chi2_norm_dpp = chi_sq_norm(Data);
+chi2_norm_dpp = chisqnorm(Data);
 size(chi2_norm_dpp)
 
 % Statistical operations on output
@@ -52,33 +52,33 @@ size(chi2_norm_dpp)
 %%%dpp_matrix = (dpp_matrix-min_temp)/(max_temp-min_temp);
 %%%std_dpp_raw = std(dpp_matrix')';
 
-mean_dpp_noise_raw = mean(dpp_noise_matrix')';
+mean_dpp_noise_raw = mean(profileNoiseMatrix')';
     min_temp = min(mean_dpp_noise_raw);
     max_temp = max(mean_dpp_noise_raw);
 mean_dpp_noise_raw = (mean_dpp_noise_raw-min_temp)/(max_temp-min_temp);
-dpp_noise_matrix = (dpp_noise_matrix-min_temp)/(max_temp-min_temp);
-std_dpp_noise_raw = std(dpp_noise_matrix')';
+profileNoiseMatrix = (profileNoiseMatrix-min_temp)/(max_temp-min_temp);
+std_dpp_noise_raw = std(profileNoiseMatrix')';
 
-mean_dpp_ext = mean(dpp_extr_matrix')';
+mean_dpp_ext = mean(profileExtrMatrix')';
     min_temp = min(mean_dpp_ext);
     max_temp = max(mean_dpp_ext);
 mean_dpp_ext = (mean_dpp_ext-min_temp)/(max_temp-min_temp);
-dpp_extr_matrix = (dpp_extr_matrix-min_temp)/(max_temp-min_temp);
-std_dpp_ext = std(dpp_extr_matrix')';
+profileExtrMatrix = (profileExtrMatrix-min_temp)/(max_temp-min_temp);
+std_dpp_ext = std(profileExtrMatrix')';
 
-mean_dpp_ext2 = mean(dpp_extr_matrix2')';
+mean_dpp_ext2 = mean(profileExtrMatrix2')';
     min_temp = min(mean_dpp_ext2);
     max_temp = max(mean_dpp_ext2);
 mean_dpp_ext2 = (mean_dpp_ext2-min_temp)/(max_temp-min_temp);
-dpp_extr_matrix2 = (dpp_extr_matrix2-min_temp)/(max_temp-min_temp);
-std_dpp_ext2 = std(dpp_extr_matrix2')';
+profileExtrMatrix2 = (profileExtrMatrix2-min_temp)/(max_temp-min_temp);
+std_dpp_ext2 = std(profileExtrMatrix2')';
 
-mean_dpp_int = mean(dpp_int_matrix')';
+mean_dpp_int = mean(profileIntMatrix')';
     min_temp = min(mean_dpp_int);
     max_temp = max(mean_dpp_int);
 mean_dpp_int = (mean_dpp_int-min_temp)/(max_temp-min_temp);
-dpp_int_matrix = (dpp_int_matrix-min_temp)/(max_temp-min_temp);
-std_dpp_int = std(dpp_int_matrix')';
+profileIntMatrix = (profileIntMatrix-min_temp)/(max_temp-min_temp);
+std_dpp_int = std(profileIntMatrix')';
 
 mean_dpp_chi = mean(chi2_norm_dpp')';
     min_temp = min(mean_dpp_chi);
@@ -90,11 +90,11 @@ std_dpp_chi = std(chi2_norm_dpp')';
 %%%NormOutput_DMU.initial = dpp_matrix;
 
 figure(20)
-plot(dpp_noise_matrix)
+plot(profileNoiseMatrix)
 title('Input Data');
 xlabel('Circumferencial Position');
 ylabel('Concentration(relative)');
-NormOutput_DMU.raw = dpp_noise_matrix;
+NormOutput.raw = profileNoiseMatrix;
 saveas(gcf, 'Original input data.jpg')
 
 figure
@@ -103,38 +103,38 @@ title('Output Data by Minimizing Error');
 xlabel('Circumferencial Position');
 ylabel('Concentration(relative)');
 saveas(gcf, 'Original output by minimizing error.jpg')
-NormOutput_DMU.chi = chi2_norm_dpp;
+NormOutput.chi = chi2_norm_dpp;
     
 figure
-plot(dpp_extr_matrix)
+plot(profileExtrMatrix)
 title('Output Data by Pinning Extremes');
 xlabel('Circumferencial Position');
 ylabel('Concentration(relative)');
 saveas(gcf, 'Original output by pinning extremes.jpg')
-NormOutput_DMU.ext = dpp_extr_matrix;
+NormOutput.ext = profileExtrMatrix;
 
 figure
-plot(dpp_extr_matrix2)
+plot(profileExtrMatrix2)
 title('Output Data by Pinning Extremes');
 xlabel('Circumferencial Position');
 ylabel('Concentration(relative)');
 saveas(gcf, 'Original output by pinning extremes.jpg')
-NormOutput_DMU.ext2 = dpp_extr_matrix2;
+NormOutput.ext2 = profileExtrMatrix2;
 
 figure
-plot(dpp_int_matrix)
+plot(profileIntMatrix)
 title('Output Data by Integral Nomalization');
 xlabel('Circumferencial Position');
 ylabel('Concentration(relative)');
 saveas(gcf, 'Original output by integral.jpg')
-NormOutput_DMU.int = dpp_int_matrix;
-normOutput = NormOutput_DMU;
+NormOutput.int = profileIntMatrix;
+normOutput = NormOutput;
 save NormOutput8DMU_test.mat normOutput
 end
 
 %% Function for calculation of pinning extremes normalization
 
-function [norm_out] = extrema_norm(I_vector)
+function [norm_out] = extremanorm(I_vector)
 
 [s1,s2] = size(I_vector); 
  
@@ -163,7 +163,7 @@ end
 
 
 %% Function for AP max and min reset
-function [norm_out] = extrema_norm2(I_vector)
+function [normOut] = extremanorm2(I_vector)
 
 [s1,s2] = size(I_vector); 
  
@@ -187,7 +187,7 @@ for i=1:s1
         xy_ascending_x(i,1) = (xy_ascending_x(i,1))/(max) ;  
 %     end    
 end
-norm_out = xy_ascending_x;
+normOut = xy_ascending_x;
 
 end
 
@@ -201,7 +201,7 @@ function norm_data = integral_norm(data_in)
 end
 
 %% Functions for minimiziation of squarred-error
-function C_out = chi_sq_norm(I)
+function C_out = chisqnorm(I)
 
 nProfiles = size(I,2);
 % %Initialize Coef (A,B) matrix with intial values
