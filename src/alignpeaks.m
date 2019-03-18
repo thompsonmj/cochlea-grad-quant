@@ -1,4 +1,4 @@
-function [alRawDat,alSmDat] = alignpeaks(RawDat,x,mode,PERCENTILE)
+function [alRawDat,alSmDat] = alignpeaks(RawDat,x,mode,percentile)
 % ALIGNPEAKS 
 %%% Add 'method' input to specify centroid/midrange/abspeak, etc???
 %
@@ -23,6 +23,9 @@ function [alRawDat,alSmDat] = alignpeaks(RawDat,x,mode,PERCENTILE)
 %       b. Use optical theory (e.g. PSF) to scale profiles
 %   2. Sox2 stain behaves differently than pSmad/Topro3 in some cases. I.e., signal is much lower at
 %   lower optical sections than higher ones
+%
+% NOT NORMALIZING OPTICAL SECTIONS WITHIN A SINGLE CRYOSECTION
+%   
 %%%CONSIDER<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 
 %%%Don't use cochlea 17 for troubleshooting.
@@ -33,101 +36,73 @@ nTgts = size(T,1);
 
 %% Smooth raw data. Append tails with data from opposite tail so windows see continuous signals.
 
+method = 'sgolay';
+
 % Adjust smoothing window size based on image resolution.
 % Adequate window size determined by eye.
 if mean(diff(x)) > 0.3 && mean(diff(x)) < 0.4   
     % Corresponds to 1024 x 1024 image resolution.
-    win = 550;
+    win = 500;
 elseif mean(diff(x)) > 0.6 && mean(diff(x)) < 0.7
     % Corresponds to 512 x 512 image resolution.
-    win = 225;
+    win = 250;
 else 
     error('Invalid resolution.');
 end
-        
+
+
+for iTgt = 1:nTgts
+
+    smDat.(T{iTgt}) = struct([]);
+    meanDat.(T{iTgt}) = struct([]);
+    
+end
 
 for iTgt = 1:nTgts
 
     profileSet = RawDat.(T{iTgt});
     
-    %%% Normalize optical slices within a cryosection and rescale to
-    %%% original scale.
-    disp(T{iTgt})
-    pause(2)
-    figure,hold on
-    plot(profileSet,'LineStyle',':')
-    
-    mnProfile = mean(profileSet,2);
-%     profileSetAppended = [];
-    smProfileSetUnappended = [];
     nZ = size(profileSet,2);
-    % Smooth first, then normalize.
+    
+    smDat.(T{iTgt}) = zeros(size(profileSet));
+    
+    % Smooth, average, then align.
     for iZ = 1:nZ
     
        profile = RawDat.(T{iTgt})(:,iZ);
        nPts = numel(profile);
-%        appSize = floor(nPts*0.3); % 0.3 arbitrary. Must be > win/2.
-       appSize = ceil(win/2);
-       startQuartile = profile( 1 : appSize ); 
-       endQuartile = profile( nPts-appSize : nPts );
-       profileAppended = [endQuartile; profile; startQuartile];
+       appendSize = ceil(win/2);
+       startPortion = profile( 1 : appendSize ); 
+       endPortion = profile( nPts-appendSize : nPts );
+       profileAppended = [endPortion; profile; startPortion];
        nPtsAppended = numel(profileAppended);
        
-       method = 'rloess';
-       smProfileAppended = smoothdata(profileAppended,method);
-       smProfileUnappended = smProfileAppended( appSize+1 : ...
-                                                nPtsAppended - (appSize+1) );
+       smProfileAppended = smoothdata(profileAppended,method,win);
        
-%        profileUnappended = profileAppended( appSize+1 : ...
-%                                             nPtsAppended - (appSize+1) );
-       
-%        profileSetAppended = [profileSetAppended,profileAppended];
-       smProfileSetUnappended = [smProfileSetUnappended,smProfileUnappended];
+       smProfileUnappended = smProfileAppended( appendSize+1 : ...
+                                                nPtsAppended - (appendSize+1) );
+              
+       smDat.(T{iTgt})(:,iZ) = [smProfileUnappended];
        
     end
-%     mnProfileAppended = mean(profileSetAppended,2);
-%     mnProfileUnappended = mnProfileAppended( appSize+1 : ...
-%                                              nPtsAppended - (appSize+1) );
-%     [smMnProfileAppended,win] = smoothdata(mnProfileAppended,'sgolay',win,'Degree',2);
-%     smMnProfileUnappended = smMnProfileAppended( appSize+1 : nPtsAppended - (appSize+1) );
     
-%     plot(smMnProfileUnappended,'LineWidth',4,'Color','r')
-%     plot(smMnSignalUnAppended600,'LineStyle','--','Color','k')
-
-%     normOutput = normdat(smProfileSetUnappended)
-
-    plot(smProfileSetUnappended,'b')
-    plot(mean(smProfileSetUnappended,2),'LineWidth',3,'Color','b')
-%     plot(mnProfileUnappended,'LineStyle',':','Color','k')
-    title([T{iTgt},' - ',method])
-%     smSignalmovmean = smoothdata(avSignal, 'movmean');
-%     figure;
-%     grid on
-%     hold on
-%     plot(avSignal,'Color','k');
-%     plot(signalSet,'LineStyle',':','Color','k');
-%     plot(smSignalsgolay,'LineWidth',3,'Color','b')
-%     plot(smSignalmovmean,'LineWidth',3,'Color','m')
-%     for iZ = 1:nZ
-%        signal = RawDat.(T{iTgt})(:,iZ);
-%        nPts = numel(signal);
-%        quart = floor(nPts*0.25);
-%        startQuartile = signal( 1 : quart ); 
-%        endQuartile = signal( nPts-quart : nPts );
-%        signalAppended = [startQuartile; signal; endQuartile];
-%        smSignalAppended = smoothdata(signalAppended, ...
-%             'sgolay', ...
-%             'SmoothingFactor', 0.2);
-%        smSignal = smSignalAppended( quart+1 : nPts-(quart+1) );
-%        smSignalsgolayz = smoothdata(signal, 'sgolay');%,'SmoothingFactor',0.2);
-%        smSignalmovmeanz = smoothdata(signal,'movmean');
-%        
-%        plot(smSignalsgolayz,'LineWidth',2,'Color','b','LineStyle','--');
-%        plot(smSignalmovmeanz, 'LineWidth',2,'Color','m','LineStyle','--');
-% 
-%        
-%     end
-%     alSmDat.(T{iTgt}) = smSignal; % Not yet aligned.
+    % Normalize smoothed optical sections on this channel.
+    %%% Integral normalization is possibly the most appropriate: 
+    %%% "equal integrals, which imposes the implicit assumption on
+    %%% the normalized data that each specimen contains the same number of the 
+    %%% molecular species assayed"
+    %%%
+    %%% David (2019-03-18): more defensible to use a single normalization approach
+    %%% throughout a paper. ChiSq for optical sections in a cryosectoin aligns more with the hypothesis that the
+    %%% signal observed at each position is distorted by a function of
+    %%% experimental (reagent penetrance, etc) and optical (out of plane fluorescence, etc.)
+    %%% systematic distortoins from the true value.
+    normOut = normdat( smDat.(T{iTgt}) );
+    
+    meanDat.(T{iTgt}) = mean(normOut.ChiSq,2);
+    
+    % Rescale normalized profiles to original scale.
+    
 
 end
 
@@ -136,33 +111,51 @@ switch mode
     case 'pSmad'
         msg = 'pSmad data missing. Cannot use pSmad alignment.';
         assert(isfield(RawDat,mode),msg);
-        idx = findcentroidLOCAL( RawDat.(mode) );
         ANCHOR = 2/3;
-        % Temporarily smooth data to accurately assess peak regions.
-        %thresh = ()*;
+        peakAlignAnchor = round( ANCHOR*numel(x) );
+        nZ = size(RawDat.pSmad,2);
+        comIdcsArray = cell(nZ,1);
+        threshIdcsArray = cell(nZ,1);
+        % Find the center-of-mass of each smoothed optical section. Align
+        % all channels at that optical section based on results.
+        for iZ = 1:nZ
+            profile = meanDat.pSmad;
+            [comIdcsArray{iZ}, threshIdcsArray{iZ}] = ...
+                findcom(profile,percentile);
+            shiftIdx = peakAlignAnchor - comIdcsArray{iZ}(1); % x-coordinate for COM
             
+            for iTgt = 1:nTgts
+                
+                %%% Add a check to make sure z values match up (some Sox2
+                %%% data doesn't contain all z-sections.
+                
+                alRawDat.(T{iTgt})(:,iZ) = ...
+                    circshift( RawDat.(T{iTgt})(:,iZ), round(shiftIdx), 1 );
+                alSmDat.(T{iTgt})(:,iZ) = ...
+                    circshift( smDat.(T{iTgt})(:,iZ), round(shiftIdx), 1 );
+                
+            end
+            
+        end
+
     case 'Sox2'
         msg = 'Sox2 data missing. Cannot use Sox2 alignment.';
         assert(isfield(RawDat,mode),msg);
         idx = findcentroidLOCAL( RawDat.(mode) );
         ANCHOR = 1/3;
-        
+
     case 'mid'
         msg = 'Sox2 or pSmad data missing. Cannot use mid alignment.';
         assert(isfield(RawDat,'pSmad') && isfield(RawDat,'Sox2'),msg);
         idx1 = findcentroidLOCAL( RawDat.Sox2 );
         idx2 = findcentroidLOCAL( RawDat.pSmad );
         idx = (idx1 + idx2)/2;
-        
+
         ANCHOR = 1/2;
-        
+
 end
 
-%%% use circshift to shift all data based on idx.
 
-    function idx = findcentroidLOCAL(tgt,PERCENTILE)
-        %...
-    
-    end
 
+%alRawDat = 1;
 end

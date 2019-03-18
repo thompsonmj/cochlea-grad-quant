@@ -51,7 +51,7 @@ yRegion = profile(profile > threshVal) - threshVal;
 A = sum(yRegion);
 
 xBar = (1/A)*sum(xRegion.*yRegion);
-yBar = (1/A)*sum(0.5*yRegion.^2);
+yBar = (1/A)*sum(0.5*yRegion.^2) + threshVal;
 
 comIdcs = [xBar, yBar];
 

@@ -222,8 +222,8 @@ function C = CochleaDataObj
         [yMatSmMax,idxOrigin] = max(yMatSm);
         ANCHOR = 2/3;
         
-        PERCENTILE = 0.33;
-        thresh = (1 - PERCENTILE)*yMatSmMax;
+        PERCENTILE = 0.75; 
+        thresh = PERCENTILE*yMatSmMax;
         peakRegions = cell(1,nZ);
         
         idx0 = zeros(1,nZ);
