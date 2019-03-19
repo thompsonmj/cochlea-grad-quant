@@ -23,9 +23,6 @@ function [alRawDat,alSmDat] = alignpeaks(RawDat,x,mode,percentile)
 %       b. Use optical theory (e.g. PSF) to scale profiles
 %   2. Sox2 stain behaves differently than pSmad/Topro3 in some cases. I.e., signal is much lower at
 %   lower optical sections than higher ones
-%
-% NOT NORMALIZING OPTICAL SECTIONS WITHIN A SINGLE CRYOSECTION
-%   
 %%%CONSIDER<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 
 %%%Don't use cochlea 17 for troubleshooting.
@@ -50,26 +47,23 @@ else
     error('Invalid resolution.');
 end
 
+% Cells for parfor.
+RawDatcell = struct2cell(RawDat);
+smDatcell = cell(nTgts,1);
+meanDatcell = cell(nTgts,1);
 
-for iTgt = 1:nTgts
-
-    smDat.(T{iTgt}) = struct([]);
-    meanDat.(T{iTgt}) = struct([]);
+parfor iTgt = 1:nTgts
     
-end
-
-for iTgt = 1:nTgts
-
-    profileSet = RawDat.(T{iTgt});
+    profileSet = RawDatcell{iTgt};
     
     nZ = size(profileSet,2);
     
-    smDat.(T{iTgt}) = zeros(size(profileSet));
+    smDatcell{iTgt} = zeros(size(profileSet));
     
-    % Smooth, average, then align.
+    % Smooth, norm, average, then align.
     for iZ = 1:nZ
     
-       profile = RawDat.(T{iTgt})(:,iZ);
+       profile = RawDatcell{iTgt}(:,iZ);
        nPts = numel(profile);
        appendSize = ceil(win/2);
        startPortion = profile( 1 : appendSize ); 
@@ -82,7 +76,7 @@ for iTgt = 1:nTgts
        smProfileUnappended = smProfileAppended( appendSize+1 : ...
                                                 nPtsAppended - (appendSize+1) );
               
-       smDat.(T{iTgt})(:,iZ) = [smProfileUnappended];
+       smDatcell{iTgt}(:,iZ) = [smProfileUnappended];
        
     end
     
@@ -97,13 +91,22 @@ for iTgt = 1:nTgts
     %%% signal observed at each position is distorted by a function of
     %%% experimental (reagent penetrance, etc) and optical (out of plane fluorescence, etc.)
     %%% systematic distortoins from the true value.
-    normOut = normdat( smDat.(T{iTgt}) );
+% % % %     normOut = normdat( smDat.(T{iTgt}) );
+    %PARFOR>
+    normOut = normdat( smDatcell{iTgt} );
+    %PARFOR<
     
-    meanDat.(T{iTgt}) = mean(normOut.ChiSq,2);
-    
-    % Rescale normalized profiles to original scale.
-    
+% % %     meanDat.(T{iTgt}) = mean(normOut.ChiSq,2);
+    %PARFOR>
+    meanDatcell{iTgt} = mean(normOut.ChiSq,2);
+    %PARFOR<    
 
+end
+
+% Extract data into structures by target.
+for iTgt = 1:nTgts
+    smDat.(T{iTgt}) = smDatcell{iTgt};
+    meanDat.(T{iTgt}) = meanDatcell{iTgt};
 end
 
 % Align smoothed data based on the method specified in 'mode'.
