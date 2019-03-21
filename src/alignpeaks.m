@@ -16,17 +16,16 @@ function alDat = alignpeaks( datToAlgn, template, algnMode, percentile )
 %       Must follow 0 < percentile < 1.
 %       E.g. percentile = 0.25: threshold set to 75% of max profile value.
 % Output:
-%   > alRawDat: Aligned raw data
-%   > alSmDat: Aligned smooth data. (Also normalized
+%   > alDat: Struct containing aligned datToAlign.
 %
 %%% FUTURE ADDITIONS
 %%% varargin to accomodate midpoints between multiple template profiles.
 
-datFlds = fieldnames( datToAlgn );
-nFlds = numel( datFlds );
+F = fieldnames( datToAlgn );
+nFlds = numel( F );
 
-T = fieldnames( datToAlgn.(datFlds{1}) );
-dataLength = numel( datToAlgn.(datFlds{1}).(T{1})(:,1) );
+T = fieldnames( datToAlgn.(F{1}) );
+dataLength = numel( datToAlgn.(F{1}).(T{1})(:,1) );
 
 ANCHOR = 2/3;
 peakAlgnAnchor = round( ANCHOR*dataLength );
@@ -46,11 +45,11 @@ end
 shiftIdx = peakAlgnAnchor - algnIdx;
 
 for iFld = 1:nFlds
-    T = fieldnames( datToAlgn.(datFlds{iFld}) );
+    T = fieldnames( datToAlgn.(F{iFld}) );
     nTgts = numel( T );
     for iTgt = 1:nTgts
-        alDat.(datFlds{iFld}).(T{iTgt}) = ...
-            circshift( datToAlgn.(datFlds{iFld}).(T{iTgt}), round(shiftIdx), 1 );
+        alDat.(F{iFld}).(T{iTgt}) = ...
+            circshift( datToAlgn.(F{iFld}).(T{iTgt}), round(shiftIdx), 1 );
     end
 end
 
