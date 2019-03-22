@@ -124,7 +124,7 @@ stdProfileChi = std(chiSqNormProfile')';
 % ylabel('Concentration(relative)');
 % ylim([0 max(ylim)])
 % saveas(gcf, 'Original output by minimizing error.jpg')
-normOutput.ChiSq = chiSqNormProfile;
+normOutput.chiSq = chiSqNormProfile;
 %     
 % figure
 % plot(profileExtrMatrix)
@@ -244,7 +244,7 @@ B = mean(I,1);
 C_mean0= mean((I - ones(size(I,1),1)*B),2);
 onemat = ones(size(I,1),1);
 %%%c_err0 = 1e-4; 
-c_err0 = 1e-2;
+c_err0 = 1e-4;
 C_ERR0 = 1e-4;
 c_err = 51;
 c_err_min = 100;
@@ -262,28 +262,16 @@ while c_err > c_err0
     
     nAttempts = nAttempts + 1;
     
-%     if mod(nAttempts,500) == 0
-%         disp(['Current min error: ',num2str(c_err_min)])
-%         toc
-%         disp(' ')
-%     end
-    
-    if nAttempts > threshIterator*100
+    if nAttempts > threshIterator*1000
         c_err0 = c_err0*2;
-%         c_err0 = c_err_min - (c_err_min - C_ERR0)/((threshIterator+1)^3); 
         threshIterator = threshIterator + 1;
 %         disp('Relaxing error threshold.')
 %         disp(['Current min: ',num2str(c_err_min)])        
         disp(['New threshold: ',num2str(c_err0)])
         disp(['No. of attempts: ',num2str(nAttempts)]);
-%         toc
-%         t = toc;
 %         eff = nAttempts/t;
 %         disp(['Efficiency: ',num2str(eff),' attempts/s']);
 %         disp(' ')
-%         if threshIterator >= 5
-%             c_err0 = c_err_min + C_ERR0*2^(threshIterator - 4) ;
-%         end
     end
     
     for iProfile = 1:nProfiles
@@ -295,21 +283,10 @@ while c_err > c_err0
     C_mean = mean(((I - onemat*B)./(onemat*Coef)),2);
     c_err = sum(abs((C_mean - C_mean0)));
     C_mean0 = C_mean;
-%     if c_err < c_err_min
-%         c_err_min = c_err;
-%         c_err0 = C_ERR0;
-%         threshIterator = 1;
-%         disp(['New min: ',num2str(c_err_min)])
-%         disp(['Resetting error threshold to ',num2str(c_err0)])
-%         disp(['No. of attempts: ',num2str(nAttempts)]);
-%         toc
-%         t = toc;
-%         tic
-%         eff = nAttempts/t;
-%         disp(['Efficiency: ',num2str(eff),' attempts/s']);
-%         disp(' ')
-%         nAttempts = 0;
-%     end
+    
+    if c_err0 >= 1
+        break
+    end
 end 
 
 disp(['Minimized error: ', num2str(c_err)])

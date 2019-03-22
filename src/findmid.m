@@ -1,16 +1,15 @@
-function [comIdcs, threshIdcs] = findcom(profile,percentile)
-%FIND1DCOM finds the x-index for the center-of-mass (centroid) of the top
-% given percentile of the data.
+function [midIdx, threshIdcs] = findmid(profile,percentile)
+%FINDMID Find the x-index for the midpoint of the line intersecting the
+% profile at the percentile indicated.
 %
 % Inputs:
 %   profile: 1D array 
-%   percentile: percentage threshold of max over which to apply
-%   center-of-mass (COM). 
+%   percentile: percentage threshold of max on which to calculate midpoint. 
 %       If percentile == 0, all data is considered in calculation.
 %       If percentile => 1, at minimum a single value is used (max value). 
 % Outputs:
-%   comIdcs: global x and y cooridnates of the thresholded COM
-%       1x2, double
+%   midIdx: global x index of the thresholded midpoint
+%       1x1, double
 %   threshIdcs: global x indices for the threshold
 %       1x2, double
 
@@ -47,14 +46,8 @@ if max(diff(find(profile > threshVal))) > 1
 end
 
 xRegion = find(profile > threshVal);
-yRegion = profile(profile > threshVal) - threshVal;
 
-A = sum(yRegion);
-
-xBar = (1/A)*sum(xRegion.*yRegion);
-yBar = (1/A)*sum(0.5*yRegion.^2) + threshVal;
-
-comIdcs = [xBar, yBar];
+midIdx = ( xRegion(1) + xRegion(end) )/2;
 
 threshIdcs = [xRegion(1), xRegion(end)];
 

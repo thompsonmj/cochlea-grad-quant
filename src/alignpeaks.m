@@ -1,7 +1,4 @@
-function alDat = alignpeaks( datToAlgn, template, algnMode, percentile )
-
-% [alDat] = alignpeakes( datToAlgn, template, target, algnMode, percentile ); 
-%   alignpeaks(  );
+function AlDat = alignpeaks( DatToAlgn, template, algnMode, percentile )
 %ALIGNPEAKS Align profile data for a cryosection based on a reference profile.
 %
 % Input:
@@ -21,11 +18,11 @@ function alDat = alignpeaks( datToAlgn, template, algnMode, percentile )
 %%% FUTURE ADDITIONS
 %%% varargin to accomodate midpoints between multiple template profiles.
 
-F = fieldnames( datToAlgn );
+F = fieldnames( DatToAlgn );
 nFlds = numel( F );
 
-T = fieldnames( datToAlgn.(F{1}) );
-dataLength = numel( datToAlgn.(F{1}).(T{1})(:,1) );
+T = fieldnames( DatToAlgn.(F{1}) );
+dataLength = numel( DatToAlgn.(F{1}).(T{1})(:,1) );
 
 ANCHOR = 2/3;
 peakAlgnAnchor = round( ANCHOR*dataLength );
@@ -45,11 +42,11 @@ end
 shiftIdx = peakAlgnAnchor - algnIdx;
 
 for iFld = 1:nFlds
-    T = fieldnames( datToAlgn.(F{iFld}) );
+    T = fieldnames( DatToAlgn.(F{iFld}) );
     nTgts = numel( T );
     for iTgt = 1:nTgts
-        alDat.(F{iFld}).(T{iTgt}) = ...
-            circshift( datToAlgn.(F{iFld}).(T{iTgt}), round(shiftIdx), 1 );
+        AlDat.(F{iFld}).(T{iTgt}) = ...
+            circshift( DatToAlgn.(F{iFld}).(T{iTgt}), round(shiftIdx), 1 );
     end
 end
 

@@ -1,5 +1,5 @@
 function id = genidcode(varargin)
-% GENIDCODE creates a random, all-caps, alphanumeric ID that always begins
+%GENIDCODE creates a random, all-caps, alphanumeric ID that always begins
 % with a letter. Defaults to 8-characters. Providing a numeric argument
 % specifies a custom lenth.
 

@@ -2,8 +2,6 @@ function AOut = uniformsample(AIn,nSamples)
 % UNIFORMSAMPLE resamples an array to a constant rate. Each column of a
 % matrix is treated as a separate channel.
 
-nSamples = 1000;
-
 nCol = size(AIn,2);
 
 x = (1:numel(AIn(:,1)))';

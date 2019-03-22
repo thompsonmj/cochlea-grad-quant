@@ -1,0 +1,132 @@
+
+                            < M A T L A B (R) >
+                  Copyright 1984-2017 The MathWorks, Inc.
+                   R2017a (9.2.0.556344) 64-bit (glnxa64)
+                               March 27, 2017
+
+[Warning: Name is nonexistent or not a directory:
+/depot/dumulis/cc3d/apps/dev/dep] 
+[Warning: Name is nonexistent or not a directory:
+/depot/dumulis/cc3d/apps/dev/dep/InfoTheory] 
+[Warning: Name is nonexistent or not a directory:
+/depot/dumulis/cc3d/apps/dev/dep/InfoTheory/InfoTheory] 
+[Warning: Name is nonexistent or not a directory:
+/depot/dumulis/cc3d/apps/dev/dep/ssh2_v2_m1_r6] 
+[Warning: Name is nonexistent or not a directory:
+/depot/dumulis/cc3d/apps/dev/dep/ssh2_v2_m1_r6/ssh2_v2_m1_r6] 
+[Warning: Name is nonexistent or not a directory:
+/depot/dumulis/cc3d/apps/dev/dep/ssh2_v2_m1_r6/ssh2_v2_m1_r6/examples] 
+[Warning: Name is nonexistent or not a directory:
+/depot/dumulis/cc3d/apps/dev/dep/ssh2_v2_m1_r6/ssh2_v2_m1_r6/ganymed-ssh2-m1] 
+[Warning: Name is nonexistent or not a directory:
+/depot/dumulis/cc3d/apps/dev/src] 
+ 
+For online documentation, see http://www.mathworks.com/support
+For product information, visit www.mathworks.com.
+ 
+[Warning: '/home/thompsmj/Documents/MATLAB/Add-Ons/Toolboxes/Image Despeckle
+Filtering Toolbox/code/Image Despeckle Filtering (IDF)' is not a valid folder.
+You might not be able to run installed add-ons] 
+[Warning: '/home/thompsmj/Documents/MATLAB/Add-Ons/Toolboxes/Image Despeckle
+Filtering Toolbox/code/Image Despeckle Filtering (IDF)/Publication' is not a
+valid folder. You might not be able to run installed add-ons] 
+[Warning: '/home/thompsmj/Documents/MATLAB/Add-Ons/Toolboxes/Image Despeckle
+Filtering Toolbox/code/Image Despeckle Filtering (IDF)/Texture Analysis' is not
+a valid folder. You might not be able to run installed add-ons] 
+[Warning: '/home/thompsmj/Documents/MATLAB/Add-Ons/Toolboxes/Image Despeckle
+Filtering Toolbox/code' is not a valid folder. You might not be able to run
+installed add-ons] 
+[Warning: '/home/thompsmj/Documents/MATLAB/Add-Ons/Toolboxes/Image Despeckle
+Filtering Toolbox/code/Image Despeckle Filtering (IDF)/Images' is not a valid
+folder. You might not be able to run installed add-ons] 
+/depot/dumulis/cochlea/data/img/sw/wt/E12.5/29_SW29-2S/tif-orient/sep-ch/sub-bkgd/sep-z/despeckle/quant-prof/_dat_
+Generating default 8-character alphanumeric code.
+[Warning: Problem with
+/depot/dumulis/cochlea/data/img/sw/wt/E12.5/29_SW29-2S/tif-orient/sep-ch/sub-bkgd/sep-z/despeckle/quant-prof/_dat_] 
+[  In parallel_function (line 478)
+  In processdatascript_cluster (line 23)] 
+/depot/dumulis/cochlea/data/img/sw/wt/E12.5/28_SW29-1S/tif-orient/sep-ch/sub-bkgd/sep-z/despeckle/quant-prof/_dat_
+Generating default 8-character alphanumeric code.
+[Warning: Problem with
+/depot/dumulis/cochlea/data/img/sw/wt/E12.5/28_SW29-1S/tif-orient/sep-ch/sub-bkgd/sep-z/despeckle/quant-prof/_dat_] 
+[  In parallel_function (line 478)
+  In processdatascript_cluster (line 23)] 
+/depot/dumulis/cochlea/data/img/sw/wt/E12.5/27_SW28-2S/tif-orient/sep-ch/sub-bkgd/sep-z/despeckle/quant-prof/_dat_
+Generating default 8-character alphanumeric code.
+[Warning: Problem with
+/depot/dumulis/cochlea/data/img/sw/wt/E12.5/27_SW28-2S/tif-orient/sep-ch/sub-bkgd/sep-z/despeckle/quant-prof/_dat_] 
+[  In parallel_function (line 478)
+  In processdatascript_cluster (line 23)] 
+/depot/dumulis/cochlea/data/img/sw/wt/E12.5/23_SW25-2S/tif-orient/sep-ch/sub-bkgd/sep-z/despeckle/quant-prof/_dat_
+Generating default 8-character alphanumeric code.
+[Warning: Problem with
+/depot/dumulis/cochlea/data/img/sw/wt/E12.5/23_SW25-2S/tif-orient/sep-ch/sub-bkgd/sep-z/despeckle/quant-prof/_dat_] 
+[  In parallel_function (line 478)
+  In processdatascript_cluster (line 23)] 
+/depot/dumulis/cochlea/data/img/sw/wt/E12.5/22_SW25-1S/tif-orient/sep-ch/sub-bkgd/sep-z/despeckle/quant-prof/_dat_
+Generating default 8-character alphanumeric code.
+[Warning: Problem with
+/depot/dumulis/cochlea/data/img/sw/wt/E12.5/22_SW25-1S/tif-orient/sep-ch/sub-bkgd/sep-z/despeckle/quant-prof/_dat_] 
+[  In parallel_function (line 478)
+  In processdatascript_cluster (line 23)] 
+/depot/dumulis/cochlea/data/img/sw/wt/E12.5/21_SW26-2S/tif-orient/sep-ch/sub-bkgd/sep-z/despeckle/quant-prof/_dat_
+Generating default 8-character alphanumeric code.
+[Warning: Problem with
+/depot/dumulis/cochlea/data/img/sw/wt/E12.5/21_SW26-2S/tif-orient/sep-ch/sub-bkgd/sep-z/despeckle/quant-prof/_dat_] 
+[  In parallel_function (line 478)
+  In processdatascript_cluster (line 23)] 
+/depot/dumulis/cochlea/data/img/sw/wt/E12.5/20_SW26-1S/tif-orient/sep-ch/sub-bkgd/sep-z/despeckle/quant-prof/_dat_
+Generating default 8-character alphanumeric code.
+[Warning: Problem with
+/depot/dumulis/cochlea/data/img/sw/wt/E12.5/20_SW26-1S/tif-orient/sep-ch/sub-bkgd/sep-z/despeckle/quant-prof/_dat_] 
+[  In parallel_function (line 478)
+  In processdatascript_cluster (line 23)] 
+/depot/dumulis/cochlea/data/img/sw/wt/E12.5/17_SW17-1AB/tif-orient/sep-ch/sub-bkgd/sep-z/despeckle/quant-prof/_dat_
+Generating default 8-character alphanumeric code.
+[Warning: Problem with
+/depot/dumulis/cochlea/data/img/sw/wt/E12.5/17_SW17-1AB/tif-orient/sep-ch/sub-bkgd/sep-z/despeckle/quant-prof/_dat_] 
+[  In parallel_function (line 478)
+  In processdatascript_cluster (line 23)] 
+/depot/dumulis/cochlea/data/img/sw/wt/E12.5/16_SW16-1AB/tif-orient/sep-ch/sub-bkgd/sep-z/despeckle/quant-prof/_dat_
+Generating default 8-character alphanumeric code.
+[Warning: Problem with
+/depot/dumulis/cochlea/data/img/sw/wt/E12.5/16_SW16-1AB/tif-orient/sep-ch/sub-bkgd/sep-z/despeckle/quant-prof/_dat_] 
+[  In parallel_function (line 478)
+  In processdatascript_cluster (line 23)] 
+/depot/dumulis/cochlea/data/img/sw/wt/E12.5/15_SW12-1A/tif-orient/sep-ch/sub-bkgd/sep-z/despeckle/quant-prof/_dat_
+Generating default 8-character alphanumeric code.
+[Warning: Problem with
+/depot/dumulis/cochlea/data/img/sw/wt/E12.5/15_SW12-1A/tif-orient/sep-ch/sub-bkgd/sep-z/despeckle/quant-prof/_dat_] 
+[  In parallel_function (line 478)
+  In processdatascript_cluster (line 23)] 
+/depot/dumulis/cochlea/data/img/sw/wt/E12.5/14_SW18-1AB/tif-orient/sep-ch/sub-bkgd/sep-z/despeckle/quant-prof/_dat_
+Generating default 8-character alphanumeric code.
+[Warning: Problem with
+/depot/dumulis/cochlea/data/img/sw/wt/E12.5/14_SW18-1AB/tif-orient/sep-ch/sub-bkgd/sep-z/despeckle/quant-prof/_dat_] 
+[  In parallel_function (line 478)
+  In processdatascript_cluster (line 23)] 
+/depot/dumulis/cochlea/data/img/sw/wt/E12.5/9_SW21-1AB/tif-orient/sep-ch/sub-bkgd/sep-z/despeckle/quant-prof/_dat_
+Generating default 8-character alphanumeric code.
+[Warning: Problem with
+/depot/dumulis/cochlea/data/img/sw/wt/E12.5/9_SW21-1AB/tif-orient/sep-ch/sub-bkgd/sep-z/despeckle/quant-prof/_dat_] 
+[  In parallel_function (line 478)
+  In processdatascript_cluster (line 23)] 
+/depot/dumulis/cochlea/data/img/sw/wt/E12.5/5_SW15-1B_assume-serial/tif-orient/sep-ch/sub-bkgd/sep-z/despeckle/quant-prof/_dat_
+Generating default 8-character alphanumeric code.
+[Warning: Problem with
+/depot/dumulis/cochlea/data/img/sw/wt/E12.5/5_SW15-1B_assume-serial/tif-orient/sep-ch/sub-bkgd/sep-z/despeckle/quant-prof/_dat_] 
+[  In parallel_function (line 478)
+  In processdatascript_cluster (line 23)] 
+/depot/dumulis/cochlea/data/img/sw/wt/E12.5/4_SW14-3A_assume-serial/tif-orient/sep-ch/sub-bkgd/sep-z/despeckle/quant-prof/_dat_
+Generating default 8-character alphanumeric code.
+[Warning: Problem with
+/depot/dumulis/cochlea/data/img/sw/wt/E12.5/4_SW14-3A_assume-serial/tif-orient/sep-ch/sub-bkgd/sep-z/despeckle/quant-prof/_dat_] 
+[  In parallel_function (line 478)
+  In processdatascript_cluster (line 23)] 
+/depot/dumulis/cochlea/data/img/sw/wt/E12.5/2_SW2-1S/tif-orient/sep-ch/sub-bkgd/sep-z/despeckle/quant-prof/_dat_
+Generating default 8-character alphanumeric code.
+[Warning: Problem with
+/depot/dumulis/cochlea/data/img/sw/wt/E12.5/2_SW2-1S/tif-orient/sep-ch/sub-bkgd/sep-z/despeckle/quant-prof/_dat_] 
+[  In parallel_function (line 478)
+  In processdatascript_cluster (line 23)] 
+>> 
