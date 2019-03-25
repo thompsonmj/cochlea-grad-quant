@@ -80,7 +80,7 @@ properties (SetAccess = private)
 end
 methods
 %% Constructor
-function C = CochleaDataObj_modularalign(fdir)
+function C = CochleaDataObj_modularalign(varargin)
     C.CochleaID = genidcode;
         
 %     prompt = 'Enter the slide ID in single quotes (e.g. ''SW1_1S''): ';
@@ -104,7 +104,17 @@ function C = CochleaDataObj_modularalign(fdir)
     C.SecTh = 15;
     
     %% Parse through data files to organize and store raw data.
-%     fdir = uigetdir;
+    nArgs = numel(varargin);
+    switch nArgs
+        case 0
+            fdir = uigetdir;
+        case 1
+            fdir = varargin{1};
+            assert(isfolder(fdir), ...
+                'Argument must be a valid accessible directory.');
+        otherwise
+            error('Invalid argument number.')
+    end
     finfo = dir( fullfile(fdir, '*.csv') );
     nFiles = size(finfo,1);
 
