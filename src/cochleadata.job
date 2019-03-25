@@ -1,0 +1,8 @@
+#!/bin/sh -l
+#PBS -q dumulis
+#PBS -l nodes=1:ppn=15
+#PBS -l walltime=24:00:00
+#PBS -N CochleaData
+
+module load matlab
+matlab -nojvm -nodisplay -nosplash -r "processdatascript_cluster"
