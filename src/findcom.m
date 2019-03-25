@@ -1,4 +1,4 @@
-function [comIdcs, threshIdcs] = findcom(profile,percentile)
+function [ comIdcs, threshIdcs ] = findcom( profile, percentile )
 %FIND1DCOM finds the x-index for the center-of-mass (centroid) of the top
 % given percentile of the data.
 %
@@ -25,7 +25,7 @@ if isrow(profile)
 end
 
 [maxVal,~] = max(profile);
-threshVal = percentile*maxVal;
+threshVal = (1 - percentile)*maxVal;
 
 % Check if the profile contains a single region above the specified
 % threshold. If not, smoothing or percentile may need to be altered.
