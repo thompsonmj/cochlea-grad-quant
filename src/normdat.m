@@ -4,24 +4,24 @@ function normOutput = normdat(profileSet)
 
 %%%load('Data8DMU_test.mat');
 %%%load('Data8DMU_Noi_test.mat'); % Replaced with below
-load('psmadDat.mat');
+%%%load('psmadDat.mat');
 
 %%%nEmbryos = 5000; %embryoSize;  % Here you could just change the number of embryos you would 
                   %like to use in the normalization.
 
 
-[nPts,nProfiles] = size(profileSet);
+[nPts, nProfiles] = size(profileSet);
                   
 % Rescales data to [0,1] interval
 %%%xScaled = (0:0.02:1)'; % Replaced with below
 xScaled = (0:1/(nPts-1):1)';
 %%%dpp_matrix = zeros(51,nEmbryos);
-dpp_noise_matrix = zeros(nPts,nProfiles);
-dpp_extr_matrix = zeros(nPts,nProfiles);
-dpp_extr_matrix2 = zeros(nPts,nProfiles);
-dpp_int_matrix = zeros(nPts,nProfiles);
+profileRawMatrix = zeros(nPts, nProfiles);
+profileExtrMatrix = zeros(nPts, nProfiles);
+profileExtrMatrix2 = zeros(nPts, nProfiles);
+profileIntMatrix = zeros(nPts, nProfiles);
 
-index = 1;
+idx = 1;
 
 % Specific call to normalization algorithms
     for i = 1:nProfiles
@@ -34,15 +34,15 @@ index = 1;
 % Normalization    
  for j = 1:nProfiles   
     %%%dpp_matrix(:,j) = Data_ini(:,j);
-    dpp_noise_matrix(:,j) = Data(:,j);
-    dpp_extr_matrix(:,j) = extrema_norm(Data(:,j));
-    dpp_extr_matrix2(:,j) = extrema_norm2(Data(:,j));
-    dpp_int_matrix(:,j) = integral_norm(Data(:,j));
+    profileRawMatrix(:,j) = Data(:,j);
+    profileExtrMatrix(:,j) = extremanorm(Data(:,j));
+    profileExtrMatrix2(:,j) = extremanorm2(Data(:,j));
+    profileIntMatrix(:,j) = integral_norm(Data(:,j));
 end
         
 % Minimizing Error Normalization
-chi2_norm_dpp = chi_sq_norm(Data);
-size(chi2_norm_dpp)
+chiSqNormProfile = chisqnorm(Data);
+size(chiSqNormProfile)
 
 % Statistical operations on output
 %%%mean_dpp_raw = mean(dpp_matrix')';
@@ -52,89 +52,113 @@ size(chi2_norm_dpp)
 %%%dpp_matrix = (dpp_matrix-min_temp)/(max_temp-min_temp);
 %%%std_dpp_raw = std(dpp_matrix')';
 
-mean_dpp_noise_raw = mean(dpp_noise_matrix')';
-    min_temp = min(mean_dpp_noise_raw);
-    max_temp = max(mean_dpp_noise_raw);
-mean_dpp_noise_raw = (mean_dpp_noise_raw-min_temp)/(max_temp-min_temp);
-dpp_noise_matrix = (dpp_noise_matrix-min_temp)/(max_temp-min_temp);
-std_dpp_noise_raw = std(dpp_noise_matrix')';
+meanProfileRaw = mean(profileRawMatrix')';
+%     minTemp = min(meanProfileRaw);
+%     maxTemp = max(meanProfileRaw);
+% meanProfileRaw = (meanProfileRaw-minTemp)/(maxTemp-minTemp);
+% profileRawMatrix = (profileRawMatrix-minTemp)/(maxTemp-minTemp);
+% stdProfileRaw = std(profileRawMatrix')';
 
-mean_dpp_ext = mean(dpp_extr_matrix')';
-    min_temp = min(mean_dpp_ext);
-    max_temp = max(mean_dpp_ext);
-mean_dpp_ext = (mean_dpp_ext-min_temp)/(max_temp-min_temp);
-dpp_extr_matrix = (dpp_extr_matrix-min_temp)/(max_temp-min_temp);
-std_dpp_ext = std(dpp_extr_matrix')';
+meanProfileExt = mean(profileExtrMatrix')';
+    minTemp = min(meanProfileExt);
+    maxTemp = max(meanProfileExt);
+meanProfileExt = (meanProfileExt-minTemp)/(maxTemp-minTemp);
+profileExtrMatrix = (profileExtrMatrix-minTemp)/(maxTemp-minTemp);
+stdProfileExt = std(profileExtrMatrix')';
 
-mean_dpp_ext2 = mean(dpp_extr_matrix2')';
-    min_temp = min(mean_dpp_ext2);
-    max_temp = max(mean_dpp_ext2);
-mean_dpp_ext2 = (mean_dpp_ext2-min_temp)/(max_temp-min_temp);
-dpp_extr_matrix2 = (dpp_extr_matrix2-min_temp)/(max_temp-min_temp);
-std_dpp_ext2 = std(dpp_extr_matrix2')';
+meanProfileExt2 = mean(profileExtrMatrix2')';
+    minTemp = min(meanProfileExt2);
+    maxTemp = max(meanProfileExt2);
+meanProfileExt2 = (meanProfileExt2-minTemp)/(maxTemp-minTemp);
+profileExtrMatrix2 = (profileExtrMatrix2-minTemp)/(maxTemp-minTemp);
+stdProfileExt2 = std(profileExtrMatrix2')';
 
-mean_dpp_int = mean(dpp_int_matrix')';
-    min_temp = min(mean_dpp_int);
-    max_temp = max(mean_dpp_int);
-mean_dpp_int = (mean_dpp_int-min_temp)/(max_temp-min_temp);
-dpp_int_matrix = (dpp_int_matrix-min_temp)/(max_temp-min_temp);
-std_dpp_int = std(dpp_int_matrix')';
+meanProfileInt = mean(profileIntMatrix')';
+    minTemp = min(meanProfileInt);
+    maxTemp = max(meanProfileInt);
+meanProfileInt = (meanProfileInt-minTemp)/(maxTemp-minTemp);
+profileIntMatrix = (profileIntMatrix-minTemp)/(maxTemp-minTemp);
+stdProfileInt = std(profileIntMatrix')';
 
-mean_dpp_chi = mean(chi2_norm_dpp')';
-    min_temp = min(mean_dpp_chi);
-    max_temp = max(mean_dpp_chi);
-mean_dpp_chi = (mean_dpp_chi-min_temp)/(max_temp-min_temp);
-chi2_norm_dpp = (chi2_norm_dpp-min_temp)/(max_temp-min_temp);
-std_dpp_chi = std(chi2_norm_dpp')';
+%%%ORIGINAL>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+% meanProfileChi = mean(chi2NormProfile')';
+%     minTemp = min(meanProfileChi);
+%     maxTemp = max(meanProfileChi);
+% meanProfileChi = (meanProfileChi-minTemp)/(maxTemp-minTemp);
+% % chi2NormProfile = (chi2NormProfile-minTemp)/(maxTemp-minTemp);
+%%%ORIGINAL<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+
+%%%NEW>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+% meanProfileChi = mean(chi2NormProfile')';
+% %     minTemp = min(meanProfileRaw);
+% %     maxTemp = max(meanProfileRaw);
+%     minTemp = min(meanProfileChi);
+%     maxTemp = max(meanProfileChi);
+% meanProfileChi = (meanProfileChi-minTemp)/(maxTemp-minTemp);
+% % chi2NormProfile = (chi2NormProfile-minTemp)/(maxTemp-minTemp);
+% %                                    ^ moves min to 0  ^ makes overall range 1 
+% chi2NormProfile = (chi2NormProfile)/(maxTemp-minTemp);
+chiSqNormProfile = chiSqNormProfile + abs(min(mean(chiSqNormProfile')')) + ...
+    abs(min(mean(profileRawMatrix')'));
+
+%%%NEW<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+
+
+stdProfileChi = std(chiSqNormProfile')';
 
 %%%NormOutput_DMU.initial = dpp_matrix;
 
-figure(20)
-plot(dpp_noise_matrix)
-title('Input Data');
-xlabel('Circumferencial Position');
-ylabel('Concentration(relative)');
-NormOutput_DMU.raw = dpp_noise_matrix;
-saveas(gcf, 'Original input data.jpg')
-
-figure
-plot(chi2_norm_dpp)
-title('Output Data by Minimizing Error');
-xlabel('Circumferencial Position');
-ylabel('Concentration(relative)');
-saveas(gcf, 'Original output by minimizing error.jpg')
-NormOutput_DMU.chi = chi2_norm_dpp;
-    
-figure
-plot(dpp_extr_matrix)
-title('Output Data by Pinning Extremes');
-xlabel('Circumferencial Position');
-ylabel('Concentration(relative)');
-saveas(gcf, 'Original output by pinning extremes.jpg')
-NormOutput_DMU.ext = dpp_extr_matrix;
-
-figure
-plot(dpp_extr_matrix2)
-title('Output Data by Pinning Extremes');
-xlabel('Circumferencial Position');
-ylabel('Concentration(relative)');
-saveas(gcf, 'Original output by pinning extremes.jpg')
-NormOutput_DMU.ext2 = dpp_extr_matrix2;
-
-figure
-plot(dpp_int_matrix)
-title('Output Data by Integral Nomalization');
-xlabel('Circumferencial Position');
-ylabel('Concentration(relative)');
-saveas(gcf, 'Original output by integral.jpg')
-NormOutput_DMU.int = dpp_int_matrix;
-normOutput = NormOutput_DMU;
-save NormOutput8DMU_test.mat normOutput
+% figure
+% plot(profileRawMatrix)
+% title('Input Data');
+% xlabel('Circumferencial Position');
+% ylabel('Concentration(relative)');
+% ylim([0 max(ylim)])
+% NormOutput.raw = profileRawMatrix;
+% saveas(gcf, 'Original input data.jpg')
+% 
+% figure
+% plot(chi2NormProfile)
+% title('Output Data by Minimizing Error');
+% xlabel('Circumferencial Position');
+% ylabel('Concentration(relative)');
+% ylim([0 max(ylim)])
+% saveas(gcf, 'Original output by minimizing error.jpg')
+normOutput.chiSq = chiSqNormProfile;
+%     
+% figure
+% plot(profileExtrMatrix)
+% title('Output Data by Pinning Extremes');
+% xlabel('Circumferencial Position');
+% ylabel('Concentration(relative)');
+% ylim([0 max(ylim)])
+% saveas(gcf, 'Original output by pinning extremes.jpg')
+% NormOutput.ext = profileExtrMatrix;
+% 
+% figure
+% plot(profileExtrMatrix2)
+% title('Output Data by Pinning Extremes');
+% xlabel('Circumferencial Position');
+% ylabel('Concentration(relative)');
+% ylim([0 max(ylim)])
+% saveas(gcf, 'Original output by pinning extremes.jpg')
+% NormOutput.ext2 = profileExtrMatrix2;
+% 
+% figure
+% plot(profileIntMatrix)
+% title('Output Data by Integral Nomalization');
+% xlabel('Circumferencial Position');
+% ylabel('Concentration(relative)');
+% ylim([0 max(ylim)])
+% saveas(gcf, 'Original output by integral.jpg')
+% NormOutput.int = profileIntMatrix;
+% normOutput = NormOutput;
+% save NormOutput8DMU_test.mat normOutput
 end
 
 %% Function for calculation of pinning extremes normalization
 
-function [norm_out] = extrema_norm(I_vector)
+function [normOut] = extremanorm(I_vector)
 
 [s1,s2] = size(I_vector); 
  
@@ -157,13 +181,13 @@ for i=1:s1
         xy_ascending_x(i,1) = (xy_ascending_x(i,1)-min)/(max-min);  
 %     end    
 end
-norm_out = xy_ascending_x;
+normOut = xy_ascending_x;
 
 end
 
 
 %% Function for AP max and min reset
-function [norm_out] = extrema_norm2(I_vector)
+function [normOut] = extremanorm2(I_vector)
 
 [s1,s2] = size(I_vector); 
  
@@ -187,7 +211,7 @@ for i=1:s1
         xy_ascending_x(i,1) = (xy_ascending_x(i,1))/(max) ;  
 %     end    
 end
-norm_out = xy_ascending_x;
+normOut = xy_ascending_x;
 
 end
 
@@ -201,7 +225,7 @@ function norm_data = integral_norm(data_in)
 end
 
 %% Functions for minimiziation of squarred-error
-function C_out = chi_sq_norm(I)
+function C_out = chisqnorm(I)
 
 nProfiles = size(I,2);
 % %Initialize Coef (A,B) matrix with intial values
@@ -221,7 +245,9 @@ C_mean0= mean((I - ones(size(I,1),1)*B),2);
 onemat = ones(size(I,1),1);
 %%%c_err0 = 1e-4; 
 c_err0 = 1e-4;
+C_ERR0 = 1e-4;
 c_err = 51;
+c_err_min = 100;
 
 lb = 0;
 ub = 51;
@@ -236,28 +262,31 @@ while c_err > c_err0
     
     nAttempts = nAttempts + 1;
     
-    if mod(nAttempts,500) == 0
-        disp(['No. of attempts: ',num2str(nAttempts)]);
-        toc
-        disp(' ')
-    end
-    
     if nAttempts > threshIterator*1000
         c_err0 = c_err0*2;
         threshIterator = threshIterator + 1;
-        disp('Relaxing error threshold.')
+%         disp('Relaxing error threshold.')
+%         disp(['Current min: ',num2str(c_err_min)])        
         disp(['New threshold: ',num2str(c_err0)])
-        disp(' ')
+        disp(['No. of attempts: ',num2str(nAttempts)]);
+%         eff = nAttempts/t;
+%         disp(['Efficiency: ',num2str(eff),' attempts/s']);
+%         disp(' ')
     end
     
     for iProfile = 1:nProfiles
         f = @(Coef)Resid( Coef, I(:,iProfile), B(iProfile), C_mean0 );
-        [Coef(1, iProfile),fval] = fmincon(f,Coef0(1,iProfile),[],[], [], [], lb, ub, [], options);
+        [Coef(1, iProfile),fval] = ...
+            fmincon(f,Coef0(1,iProfile),[],[], [], [], lb, ub, [], options);
     end
 
     C_mean = mean(((I - onemat*B)./(onemat*Coef)),2);
     c_err = sum(abs((C_mean - C_mean0)));
     C_mean0 = C_mean;
+    
+    if c_err0 >= 1
+        break
+    end
 end 
 
 disp(['Minimized error: ', num2str(c_err)])

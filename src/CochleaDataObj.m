@@ -16,9 +16,11 @@ properties (SetAccess = private)
     SecTh       % Cryosection thickness [microns].
                 %  double
                 %  C.SecTh   
-    BAIdxAr     %TODO Numeric indices of basal->apical position.
+%     BAIdcs      % Numeric indices of basal->apical position.
                 %  double array
-                %  C.BAIdxAr      
+                %  C.BAIdcs      
+    B_BAIdcs
+    A_BAIdcs
     Dat         % Profile data.
                 %  struct
                 %  C.Dat
@@ -26,15 +28,15 @@ properties (SetAccess = private)
                 %  struct, dynamic from filenames, 's' appended to front to
                 %  represent 'section'.
                 %  C.Dat.(BAIdx), e.g. C.Dat.s1
-%   RawRadPsn   % Radial position [microns]. Raw size.
+%   rawCircPsn  % Radial position [microns]. Raw size.
                 %  double array
-                %  C.Dat.(BAIdx).RawRadPsn
+                %  C.Dat.(BAIdx).rawCircPsn
 %   RadPsn      % Radial position [microns]. Uniform size
                 %  double array
                 %  C.Dat.(BAIdx).RadPsn
-%   RadLen      % Radial length, x = L.
+%   circLen     % Circumferencial length, x = L.
                 %  double
-                %  C.Dat.(BAIdx).RadLen
+                %  C.Dat.(BAIdx).circLen
 %%%TODO   SecAng      % Cryosection angle to viewing plane [degrees].
                 %  double
                 %  C.Dat.(BAIdx).SecAng            
@@ -80,20 +82,20 @@ properties (SetAccess = private)
 end
 methods
 %% Constructor
-function C = CochleaDataObj
+function C = CochleaDataObj(varargin)
     C.CochleaID = genidcode;
         
 %     prompt = 'Enter the slide ID in single quotes (e.g. ''SW1_1S''): ';
 %     id = input(prompt);
 %     assert(ischar(id),'Input must be a character array.')
 %     C.SlideID = id;
-    
+%    
 %     prompt = 'Enter the embryo age in dpc in single quotes(e.g. ''E12.5''): ';
 %     age = input(prompt);
 %     VALIDAGES = ["E12.5" "E13.5" "E14.5" "E15.5"];
 %     assert(ismember(age,VALIDAGES),'Invalid entry.')
 %     C.Age = age;
-    
+%    
 %     prompt = 'Enter the cryosection thickness in microns: ';
 %     th = input(prompt);
 %     assert(isnumeric(th) && th<=20,'Invalid entry.');
@@ -103,199 +105,245 @@ function C = CochleaDataObj
     C.Age = 'E12.5';
     C.SecTh = 15;
     
-    % Parse through data files to organize and store raw data.
-    fdir = uigetdir;
+    %% Parse through data files to organize and store raw data.
+    nArgs = numel(varargin);
+    switch nArgs
+        case 0
+            fdir = uigetdir;
+        case 1
+            fdir = varargin{1};
+%             assert(isfolder(fdir), ...
+%                 'Argument must be a valid accessible directory.');
+        otherwise
+            error('Invalid argument number.')
+    end
     finfo = dir( fullfile(fdir, '*.csv') );
+    fNames = {finfo.name}; % Name + extension.
+    fNames = sortit(fNames);
     nFiles = size(finfo,1);
 
     % Create dynamic fieldnames in C.Dat for basal->apical indices:
     % C.Dat.(BAIdx)
-    expr1 = '^[^_]+(?=_)'; % Match what preceeds an underscore (section no).
+    exprABN = '^[^_]+(?=_)'; % Match what preceeds an underscore (section no).
     BAIdx = string;
+%     C.BAIdcs = zeros(nFiles,1);
     for iFile = 1:nFiles
         [~,fname,~] = fileparts( ...
             fullfile( finfo(iFile).folder,finfo(iFile).name )); 
-        [startidx,endidx] = regexp( fname, expr1 ); % Section number.
-        no = fname( startidx:endidx );
-        BAIdx(iFile) = string( ['s',no] );
+        [startIdxABN,endIdxABN] = regexp( fname, exprABN ); % A/B+Section number.
+        no = fname( startIdxABN:endIdxABN );
+        BAIdx(iFile) = string( no );
     end     
-    BAIdx = unique( string(BAIdx) );
+    BAIdx = sortit( unique( cellstr(BAIdx) ) );
     nSecs = size(BAIdx,2);
+    
+    exprBN = '(?<=B)(\d*)';
+    exprAN = '(?<=A)(\d*)';
+    C.B_BAIdcs = [];
+    C.A_BAIdcs = [];
     for iSec = 1:nSecs
-        C.Dat.(BAIdx(iSec)) = struct;
+        section = BAIdx{iSec};
+        [startIdxBN,endIdxBN] = regexp( section, exprBN );
+        [startIdxAN,endIdxAN] = regexp( section, exprAN );
+        C.B_BAIdcs = [C.B_BAIdcs, str2num( section( startIdxBN:endIdxBN ) )];
+        C.A_BAIdcs = [C.A_BAIdcs, str2num( section( startIdxAN:endIdxAN ) )];
     end
+    for iSec = 1:nSecs
+        C.Dat.(BAIdx{iSec}) = struct;
+    end
+    
 
     % Create dynamic fieldnames for target structs: C.Dat.(BAIdx).(Targets).
-    expr2 = '[^_]+$'; % Match what follows an underscore (target name). 
+    % Match what follows an underscore and precedes a period (target name).
+    exprT = '(?<=_)\w+(?=.)'; 
     VALIDTARGETS = ["pSmad","Sox2","TOPRO3"];        
     for iFile = 1:nFiles
-        for iSec = 1:nSecs
-            [~,fname,fext] = fileparts( ... 
-                fullfile( finfo(iFile).folder,finfo(iFile).name )); 
-            [startidx1,endidx1] = regexp( fname, expr1 ); % Section number.
-            [startidx2,endidx2] = regexp( fname, expr2 ); % Target name.
-            no = fname( startidx1:endidx1 );
-            t = fname( startidx2:endidx2 );
-            if isequal( BAIdx(iSec), string( ['s',no]) ) ...
-                    && ismember( t, VALIDTARGETS )
-                iBAIdx = num2str( BAIdx(iSec) );
-                C.Dat.(iBAIdx).(t) = struct;
-                C.Dat.(iBAIdx).(t).DatFile = fullfile( fdir, [fname,fext] );
-            end
-        end
+        f = fNames{iFile};
+        [startIdxABN,endIdxABN] = regexp( f, exprABN ); % A/B+Section number.
+        no = f( startIdxABN:endIdxABN );
+        [startIdxT,endIdxT] = regexp( f, exprT );
+        t = f( startIdxT:endIdxT );
+        C.Dat.(no).OSR.(t) = struct;
+        C.Dat.(no).USR.(t) = struct;
+        tFile = [ t, 'File'];
+        C.Dat.(no).(tFile) = fullfile( fdir, f );
     end
 
-    % Parse data from files and normalize data from individual cryosections.
+    % Parse data from files.
     for iSec = 1:nSecs
-        T = fieldnames( C.Dat.(BAIdx{iSec}) );
-        nTgts = size(T,1);
+        fprintf('Importing data from section %i of %i.\n',iSec,nSecs)
+        Ttemp = fieldnames( C.Dat.(BAIdx{iSec}).OSR );
+        nFields = size(Ttemp,1);
+        T = {};
+        Tfiles = {};
+        for iField = 1:nFields
+            if ismember( Ttemp{iField}, VALIDTARGETS )
+                T = [ T, Ttemp{iField} ];
+                Tfiles = [ Tfiles, [Ttemp{iField},'File'] ];
+            end
+        end
+        nTgts = numel(T);
         for iTgt = 1:nTgts
-            if ismember( T{iTgt}, VALIDTARGETS )
-                C.Dat.(BAIdx{iSec}).(T{iTgt});
-                d = delimread( ...
-                    C.Dat.(BAIdx{iSec}).(T{iTgt}).DatFile,',','mixed');
-                C.Dat.(BAIdx{iSec}).RawRadPsn = cat( 1, d.mixed{3:end,1} ); %%% This rewrites several times
-                C.Dat.(BAIdx{iSec}).RadLen = max( C.Dat.(BAIdx{iSec}).RawRadPsn ); %%% So does this.
-                assert(C.Dat.(BAIdx{iSec}).RadLen < 1000,'Invalid length.');
-                    % Catches error if distance mistakenly is not converted
-                    % from points to microns. All radial sections should be
-                    % less than 1000 microns.
-                A = d.mixed(3:end,2:end); % Index data within cell array.
-                A = cell2mat(A);
-                
+            C.Dat.(BAIdx{iSec}).OSR.(T{iTgt});
+            d = delimread( ...
+                C.Dat.(BAIdx{iSec}).(Tfiles{iTgt}),',','mixed');
+            C.Dat.(BAIdx{iSec}).OSR.circPsn = cat( 1, d.mixed{3:end,1} ); %%% Rewrites same value for every target.
+            C.Dat.(BAIdx{iSec}).circLen = max( C.Dat.(BAIdx{iSec}).OSR.circPsn );%%% so does this
+            
+            assert(C.Dat.(BAIdx{iSec}).circLen < 1000,'Invalid length.');
+                % Catches error if distance mistakenly is not converted
+                % from points to microns. All radial sections should be
+                % less than 1000 microns in circumference.
+            A = d.mixed(3:end,2:end); % Index data within cell array.
+            A = cell2mat(A);
+            
+            % Only include data with 3 or more optical sections.
+            if size(A,2) >= 3
                 % If image is 8-bit, scale to 16-bit.
-                maxVal = max(max(A));
-                minVal = min(min(A));
-                
-                %%% NORMALIZE INDIVIDUAL CRYOSECTIONS
-                %%% Scale each z-plane to the brightest for the cryosection.
-
-                
-                %%%%
-%                 figure
-%                 subplot(1,3,1)
-%                 plot(A,'LineStyle',':')
-%                 hold on,plot(mean(A,2),'LineWidth',2,'LineStyle','-')
-%                 
-%                 lo = minVal/maxVal;
-% %                 A = normalize(A,'range',[lo,1]);
-%                 A = chi_sq_norm(A);
-%                 m = max(max(A));
-%                 A = A + maxVal - m;
-% %                 A = A*maxVal;
-%                 subplot(1,3,2)
-%                 plot(A,'LineStyle',':')
-%                 hold on,plot(mean(A,2),'LineWidth',2,'LineStyle','-')
-                
-                %%%%
+                maxVal = max( max( A ) );
                 if maxVal < 256
                     A = A*256;
                 end
-%                 
-%                 subplot(1,3,3)
-%                 plot(A,'LineStyle',':')
-%                 hold on,plot(mean(A,2),'LineWidth',2,'LineStyle','-')
-                
+
+                % Ensure bit depth is not over 16-bit.
                 assert(maxVal < 65536,'Invalid bit depth.');
-                 
-                C.Dat.(BAIdx{iSec}).(T{iTgt}).RawDat = A;
+
+                C.Dat.(BAIdx{iSec}).OSR.(T{iTgt}).rawDat = A;
+            else
+                % Skip assignment of this data.
+                warning( ['%s channel in section %i of %i contains %i ', ...
+                    'optical sections. Excluding this data.'], ...
+                    T{iTgt}, iSec, nSecs, size(A,2) )
+                % Remove this target from the object.
+                C.Dat.(BAIdx{iSec}).OSR = ...
+                    rmfield( C.Dat.(BAIdx{iSec}).OSR, T{iTgt} );
             end
         end
-        C.Dat.(BAIdx{iSec}).RadPsn = ...
-            uniformsample( C.Dat.(BAIdx{iSec}).RawRadPsn );
     end
-        
-    
-
-    % Shift all raw data, anchoring to aligned pSmad peaks.
+    %% Within-cryosection operations.
+    secToDelete = {};
     for iSec = 1:nSecs
-        x = C.Dat.(BAIdx{iSec}).RawRadPsn;
-        % Determine pSmad peak offset from an arbitrary anchor point.
-        %%% Change to align center of mass for top ~30%.
-        %%% Add ability to align based on Sox2 peaks and on midpoint
-        %%% between pSmad/Sox2.
-        
-        %%% Modularize using alignpeaks function.
-        yMat = C.Dat.(BAIdx{iSec}).pSmad.RawDat;
-        [nPts,nZ] = size(yMat);
-        yMatSm = smoothdata( yMat );
-        [yMatSmMax,idxOrigin] = max(yMatSm);
-        ANCHOR = 2/3;
-        
-        PERCENTILE = 0.33;
-        thresh = (1 - PERCENTILE)*yMatSmMax;
-        peakRegions = cell(1,nZ);
-        
-        idx0 = zeros(1,nZ);
-        idx1 = zeros(1,nZ);
-        for iZ = 1:nZ
-            for iPt = 1:nPts
-                if yMatSm(iPt,iZ) > thresh(iZ) 
-                    if numel(peakRegions{iZ}) == 0
-                        idx0(iZ) = iPt;
-                    end
-                 peakRegions{iZ} = [peakRegions{iZ};yMatSm(iPt,iZ)];
-                end
+        %% Setup for RawDat and circPsn.
+        circPsn = C.Dat.(BAIdx{iSec}).OSR.circPsn;
+        RawDat = struct; % Inverts from *.(Target).RawDat to RawDat.(Target)
+        Ttemp = fieldnames( C.Dat.(BAIdx{iSec}).OSR );
+        nFields = size( Ttemp, 1 );
+        T = {};
+        for iField = 1:nFields
+            if ismember( Ttemp{iField}, VALIDTARGETS )
+                T = [ T, Ttemp{iField} ];
             end
-            idx1(iZ) = idx0(iZ) + numel(peakRegions{iZ});
+        end
+        nTgts = numel(T);
+        for iTgt = 1:nTgts
+            RawDat.(T{iTgt}) = C.Dat.(BAIdx{iSec}).OSR.(T{iTgt}).rawDat;
+        end
+        %% Check that data was accepted and imported.
+        if numel( fieldnames( RawDat ) ) == 0
+            secToDelete = [secToDelete, BAIdx{iSec}];
+            % Delete C.Dat.(SNUMBER)
+            % Delete B_BAIdcs or A_BAIdcs entry
+            % Skip to next section.
+            continue
+        end
+        %% (1) Smooth raw data.
+        SmRawDat = smoothrawdata( RawDat, circPsn );
+        %% (2) Norm smoothed data.
+        fprintf('Normalizing data in section %i of %i.\n',iSec,nSecs)
+        NormDat = chisqnormwrapper( SmRawDat );
+        for iTgt = 1:nTgts
+            NormDatChiSq.(T{iTgt}) = NormDat.(T{iTgt}).chiSq;
+        end
+        %% (3) Average data.
+        for iTgt = 1:nTgts
+            meanNormDat.(T{iTgt}) = mean( NormDatChiSq.(T{iTgt}), 2 );
+        end
+        %% (4) Align data.
+        algnMode = 'com';
+        PERCENTILE = 1/3;
+        
+        DatToAlgn.SmNorm = NormDatChiSq;
+        template = meanNormDat.pSmad;
+        AlNormDat = ...
+            alignpeaks( DatToAlgn, template, algnMode, PERCENTILE );
+        clear datToAlgn;
+        for iTgt = 1:nTgts
+            C.Dat.(BAIdx{iSec}).OSR.(T{iTgt}).algnDat = ...
+                AlNormDat.SmNorm.(T{iTgt});
+        end
+        %% Resample aligned data at a uniform sampling rate.
+        NSAMPLES = 1000;
+        
+        C.Dat.(BAIdx{iSec}).USR.circPsn = uniformsample( circPsn, NSAMPLES );
+        
+        for iTgt = 1:nTgts
+            C.Dat.(BAIdx{iSec}).USR.(T{iTgt}).rawDat = ...
+                uniformsample( RawDat.(T{iTgt}), NSAMPLES );
+            C.Dat.(BAIdx{iSec}).USR.(T{iTgt}).algnDat = ...
+                uniformsample( AlNormDat.SmNorm.(T{iTgt}), NSAMPLES );
+        end
+        %% Statistics within cryosections.
+        WEIGHT = 0; % for standard deviation
+        nZ = size( C.Dat.(BAIdx{iSec}).OSR.(T{1}).rawDat, 2 );
+        for iTgt = 1:nTgts
+            % Mean
+            C.Dat.(BAIdx{iSec}).OSR.(T{iTgt}).mn = ...
+                mean( C.Dat.(BAIdx{iSec}).OSR.(T{iTgt}).algnDat, 2 );
+            C.Dat.(BAIdx{iSec}).USR.(T{iTgt}).mn = ...
+                mean( C.Dat.(BAIdx{iSec}).USR.(T{iTgt}).algnDat, 2 );
+            % Standard deviation
+            C.Dat.(BAIdx{iSec}).OSR.(T{iTgt}).std = ...
+                std( C.Dat.(BAIdx{iSec}).OSR.(T{iTgt}).algnDat, WEIGHT, 2 );
+            C.Dat.(BAIdx{iSec}).USR.(T{iTgt}).std = ...
+                std( C.Dat.(BAIdx{iSec}).USR.(T{iTgt}).algnDat, WEIGHT, 2 );
+            % Standard error to the mean.
+            C.Dat.(BAIdx{iSec}).OSR.(T{iTgt}).sem = ...
+                (1/sqrt(nZ))*C.Dat.(BAIdx{iSec}).OSR.(T{iTgt}).std;
+            C.Dat.(BAIdx{iSec}).USR.(T{iTgt}).sem = ...
+                (1/sqrt(nZ))*C.Dat.(BAIdx{iSec}).USR.(T{iTgt}).std;
+        end
+    end    
+
+    % If there are sections that have not imported any data due to
+    % insufficient numbers of optical sections at all channels, delete
+    % them.
+    nDels = numel(secToDelete);
+    Alist = [];
+    Blist = [];
+    for iDel = 1:nDels
+        C.Dat = rmfield( C.Dat,secToDelete{iDel} );
+        % Check if Apical or Basal
+        % If A, add idx to A list
+        % If B, add idx to B list
+        % Delete A list from C.A_BAIdcs
+        % Delete B list from C.B_BAIdcs
+        
+        if ~isempty( regexp(secToDelete{iDel},'^A', 'once') )
+            % Apical half
+            str = secToDelete{iDel};
+            entry = str(2);
+            Alist = [Alist, str2num(entry)];
+        elseif ~isempty( regexp(secToDelete{iDel},'^B', 'once') )
+            % Basal half
+            str = secToDelete{iDel};
+            entry = str(2);
+            Blist = [Blist, str2num(entry)];
+        else
+            %something is wrong.
+        end
+        [~,ADelIdcs] = ismember(Alist,C.A_BAIdcs);
+        [~,BDelIdcs] = ismember(Blist,C.B_BAIdcs);
+        
+        if ~isempty(ADelIdcs)
+            C.A_BAIdcs(ADelIdcs) = [];
+        end
+        if ~isempty(BDelIdcs)
+            C.B_BAIdcs(BDelIdcs) = [];
         end
         
-        idx = cat(3,idx0,idx1);
-       
-        idx = mean(idx,3);
-        
-        clear yMatSm
-        
-        peakAlignAnchor = round( ANCHOR*size(x,1) );
-        shiftIdx = peakAlignAnchor - idx;
-
-        T = fieldnames( C.Dat.(BAIdx{iSec}) );
-        nTgts = size(T,1);
-        % Shift data to align associated pSmad peaks and calculate stats.
-        for iTgt = 1:nTgts
-            if ismember( T{iTgt}, VALIDTARGETS ) % Need to skip RadPsn, etc.
-                disp(T{iTgt})
-                yMat = C.Dat.(BAIdx{iSec}).(T{iTgt}).RawDat;
-                nZ = size(yMat,2);
-                C.Dat.(BAIdx{iSec}).(T{iTgt}).AlgnDat = zeros(size(yMat));
-                AlgnDatTmp = zeros( size(yMat) );
-                for iZ = 1:nZ
-                    AlgnDatTmp(:,iZ) = ...
-                        circshift( yMat(:,iZ), round(shiftIdx(iZ)), 1 );
-                end
-                % Sample mean over z-planes.
-                MnDatTmp = mean(AlgnDatTmp,2);               
-                % Bin data to be equal size across all sections and all
-                % cochleae.
-                C.Dat.(BAIdx{iSec}).(T{iTgt}).AlgnDat = ...
-                    uniformsample( AlgnDatTmp );
-                C.Dat.(BAIdx{iSec}).(T{iTgt}).MnDat = ...
-                    uniformsample( MnDatTmp );
-                % Sample standard deviation.
-                WEIGHT = 0;
-                C.Dat.(BAIdx{iSec}).(T{iTgt}).STDDat = ...
-                    std( C.Dat.(BAIdx{iSec}).(T{iTgt}).AlgnDat, WEIGHT, 2);
-                % Sample standard error of the mean.
-                % Note: Underestimates population error with low n.
-                C.Dat.(BAIdx{iSec}).(T{iTgt}).SEMDat = ...
-                    (1/sqrt(nZ))*C.Dat.(BAIdx{iSec}).(T{iTgt}).STDDat;
-                
-                % Smooth the data.
-                C.Dat.(BAIdx{iSec}).(T{iTgt}).smAlgnDat = ...
-                    smoothdata( C.Dat.(BAIdx{iSec}).(T{iTgt}).AlgnDat );
-                C.Dat.(BAIdx{iSec}).(T{iTgt}).smMnDat = ...
-                    smoothdata( C.Dat.(BAIdx{iSec}).(T{iTgt}).MnDat );
-                C.Dat.(BAIdx{iSec}).(T{iTgt}).smSTDDat = ...
-                    std ( C.Dat.(BAIdx{iSec}).(T{iTgt}).smAlgnDat, WEIGHT, 2 );
-                C.Dat.(BAIdx{iSec}).(T{iTgt}).smSEMDat = ...
-                    (1/sqrt(nZ))*C.Dat.(BAIdx{iSec}).(T{iTgt}).smSTDDat;
-                
-            end % end if
-
-        end % end Tgt loop
-
-    end % end Sec loop
-
+    end
+    
+end
 end
 
 %% Individual property set methods
@@ -303,5 +351,4 @@ end
 
 
 
-end
 end
