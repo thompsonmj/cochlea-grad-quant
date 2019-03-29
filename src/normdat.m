@@ -89,17 +89,21 @@ stdProfileInt = std(profileIntMatrix')';
 %%%ORIGINAL<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 
 %%%NEW>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-% meanProfileChi = mean(chi2NormProfile')';
-% %     minTemp = min(meanProfileRaw);
-% %     maxTemp = max(meanProfileRaw);
-%     minTemp = min(meanProfileChi);
-%     maxTemp = max(meanProfileChi);
+meanProfileChi = mean(chiSqNormProfile')';
+    minRawTemp = min(meanProfileRaw);
+    maxRawTemp = max(meanProfileRaw);
+    minNormTemp = min(meanProfileChi);
+    maxNormTemp = max(meanProfileChi);
 % meanProfileChi = (meanProfileChi-minTemp)/(maxTemp-minTemp);
-% % chi2NormProfile = (chi2NormProfile-minTemp)/(maxTemp-minTemp);
-% %                                    ^ moves min to 0  ^ makes overall range 1 
-% chi2NormProfile = (chi2NormProfile)/(maxTemp-minTemp);
-chiSqNormProfile = chiSqNormProfile + abs(min(mean(chiSqNormProfile')')) + ...
-    abs(min(mean(profileRawMatrix')'));
+% % chiSqNormProfile = (chi2NormProfile-minTemp)/(maxTemp-minTemp);
+% %                                     ^ moves min to 0  ^ makes overall range 1 
+% chiSqNormProfile = (chiSqNormProfile)/(maxTemp-minTemp);
+% chiSqNormProfile = chiSqNormProfile + abs(min(mean(chiSqNormProfile')')) + ...
+%     abs(min(mean(profileRawMatrix')'));
+
+chiSqNormProfile = ( chiSqNormProfile + abs(min(mean(chiSqNormProfile')')) + ...
+    abs(min(mean(profileRawMatrix')')) ) * ...
+    (maxRawTemp-minRawTemp)/(maxNormTemp-minNormTemp);
 
 %%%NEW<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 
@@ -244,7 +248,7 @@ B = mean(I,1);
 C_mean0= mean((I - ones(size(I,1),1)*B),2);
 onemat = ones(size(I,1),1);
 %%%c_err0 = 1e-4; 
-c_err0 = 1e-4;
+c_err0 = 1e-2;
 C_ERR0 = 1e-4;
 c_err = 51;
 c_err_min = 100;

@@ -14,7 +14,7 @@ function smDat = smoothrawdata(RawDat,x)
 %% Setup
 T = fieldnames(RawDat);
 nTgts = size(T,1);
-method = 'sgolay';
+method = 'loess';
 
 % Adjust smoothing window size based on image resolution.
 % Adequate window size determined by eye.
