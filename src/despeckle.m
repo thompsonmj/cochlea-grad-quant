@@ -19,7 +19,8 @@ startDir = pwd;
 %[file,path] = uigetfile;
 
 % Select a directory of z stacks
-fdir = uigetdir;
+% fdir = uigetdir;
+fdir = 'F:\projects\cochlea\data\img\sw\wt\E12.5\30_SW33-1S\tif-orient\mip\sep-ch\to-despeckle';
 
 % Make struct of files in directory.
 files = dir( fullfile(fdir, '*.tif') );
@@ -30,19 +31,7 @@ fdirNew = fullfile(fdir,'..','despeckle','_dat_');
 cd(fdirNew);
 
 for iFile = 1:nFiles 
-    %% Set parameters.
-    % Intensity difference ratio to trigger despeckling. Normalized to the
-    % difference between the image's max and min intensity. Used to
-    % calculate a differense threshold value for neighboring pixels.
-    RATIO = 0.3;
-    
-    % Sampling radius. How far a 'speckled' pixel looks to check what it
-    % should be.
-    SR = 2;
-    
-    assert(0 < RATIO && RATIO < 1);
-    
-    %% Algorithm
+    %% Load file
     [fdir, fname, fext] = fileparts( ...
         fullfile( files(iFile).folder,files(iFile).name ) );
     % fdir: directory containing file only, no file name
@@ -53,120 +42,121 @@ for iFile = 1:nFiles
     img = imread(f);
     
     % Initialize a copy to edit.
-    imgDespeckle = img; 
+    imgEdit = img; 
     
     fprintf('Now reading: %s\n', [fname,fext]);
     
-    % % Load stack.
-    % info = imfinfo(file);
-    % nSlices = length(info);
-    % imgStack = [];
-    %
-    % tifLink = Tiff([path,file], 'r');
-    % for iSlice = 1:nSlices
-    %     tifLink.setDirectory(iSlice);
-    %     imgStack(:,:,iSlice) = tifLink.read();
-    % end
+    %% Setup
+    % Intensity difference ratio to trigger despeckling. Normalized to the
+    % difference between the image's max and min intensity. Used to
+    % calculate a differense threshold value for neighboring pixels.
+    RATIO = 0.2;
     
-    %%%%%%%%%%%%%%%
-    % for iSlice = 1:nSlices
-    %    img = imread(file, 'Index', iSlice, 'Info', info);
-    %    imgStack(:,:,iSlice) = img;
-    % end
-    %%%%%%%%%%%%%%%
+    % Sampling radius. How far a 'speckled' pixel looks to check what it
+    % should be.
+    SR = 1;
     
-    % Original image for preview, normalized, 0 - 1. (for preview only)
-    %%%imgGrayScale = mat2gray(img);
-    THRESHOLD = RATIO*( max(max(imgDespeckle)) - min(min(imgDespeckle)) );
+    nghbrOrder = 1; %%% Unused for now
+    
+    maxPasses = 1000;
+    %% Algorithm
+    assert(0 < RATIO && RATIO < 1);    
+    
+    THRESH = RATIO*( max(max(imgEdit)) - min(min(imgEdit)) );
     
     imgDims = size(img);
     nRows = imgDims(1);
     nCols = imgDims(2);
     
-    % Count number of operations.
     counter = 0;
-    for iRow = 10:nRows-10
-        for iCol = 10:nCols-10
-            %%% These should be written better.
-            for neighborOrder = 1:2
-                if imgDespeckle(iRow,iCol) > ...
-                        imgDespeckle(iRow+neighborOrder,iCol) + THRESHOLD
-                    imgDespeckle(iRow,iCol) = sample(iRow,iCol,imgDespeckle,SR);
-                    counter = counter + 1;
-                    disp(counter)
+    nghbrRowIdcs = [ 1;  0; -1; 1; -1; 1; 0; -1 ];
+    nghbrColIdcs = [-1; -1; -1; 0;  0; 1; 1;  1 ];
+    
+    newChangeTF = true;
+    iPass = 0;
+    nPxls = numel(imgEdit);
+    s = size(imgEdit);
+
+    pxlTracker = [];
+    while newChangeTF && iPass < maxPasses
+        iPass = iPass + 1;
+        disp(['Pass ',num2str(iPass)])
+        newChangeTF = false;
+        passEditCount = 0;
+        randIdcs = randperm(nPxls);
+        [r,c] = ind2sub(s,randIdcs);
+        
+        for iPxl = 1:nPxls
+            overThreshTF = false(8,1);
+            if r(iPxl) > 2 && r(iPxl) < s(1) - 2 ...
+                    && c(iPxl) > 2 && c(iPxl) < s(2) - 2
+                % If not directly on image edge.
+                for iNghbr = 1:8
+                    if imgEdit( randIdcs(iPxl) ) > ...
+                            imgEdit( r(iPxl) + nghbrRowIdcs(iNghbr), ...
+                            c(iPxl) + nghbrColIdcs(iNghbr) ) + THRESH
+                        overThreshTF(iNghbr) = true;
+                    end
                 end
-                if imgDespeckle(iRow,iCol) > ...
-                        imgDespeckle(iRow,iCol+neighborOrder) + THRESHOLD
-                    imgDespeckle(iRow,iCol) = sample(iRow,iCol,imgDespeckle,SR);
-                    counter = counter + 1;
-                    disp(counter)
-                end
-                if imgDespeckle(iRow,iCol) > ...
-                        imgDespeckle(iRow-neighborOrder,iCol) + THRESHOLD
-                    imgDespeckle(iRow,iCol) = sample(iRow,iCol,imgDespeckle,SR);
-                    counter = counter + 1;
-                    disp(counter)
-                end
-                if imgDespeckle(iRow,iCol) > ...
-                        imgDespeckle(iRow,iCol-neighborOrder) + THRESHOLD
-                    imgDespeckle(iRow,iCol) = sample(iRow,iCol,imgDespeckle,SR);
-                    counter = counter + 1;
-                    disp(counter)
-                end
+            else
+                % Too close to the edge.
+                continue
+            end
+
+            % Sample neighbors.
+            idcs = find(overThreshTF);
+            if numel(idcs) > 3
+                imgEdit(r(iPxl),c(iPxl)) = ...
+                    sample( r(iPxl), c(iPxl), imgEdit, idcs );
+                counter = counter + 1;
+                newChangeTF = true;
+                passEditCount = passEditCount+1;
+                pxlTracker = [pxlTracker; randIdcs(iPxl)];
             end
         end
+        disp(['Edits this pass: ',num2str(passEditCount)])
     end
+    disp([num2str(counter), ' changes.'])
     
-    % Edited image for preview, normalized, 0:1. (for preview only)
-    %%% Combine into a stack.
-    % imgGrayScale_edit = mat2gray(imgDespeckle);
-    
-    % Preview edits.
-    %%% Combine into a stack.
-%     f1 = figure;
-%     subplot(1,2,1)
-%     imshow(img)
-%     title('Original Raw Image')
-%     subplot(1,2,2)
-%     imshow(imgDespeckle)
-%     title('Despeckled Raw Image')
-%     f2 = figure;cd
-%     subplot(1,2,1)
-%     image(imgGrayScale,'CDataMapping','scaled')
-%     colorbar
-%     pbaspect([1 1 1])
-%     title('Original Normalized Heat Map')
-%     xlabel('Pixels')
-%     ylabel('Pixels')
-%     subplot(1,2,2)
-%     image(imgGrayScale_edit,'CDataMapping','scaled')
-%     pbaspect([1 1 1])
-%     colorbar
-%     title('Despeckled Normalized Heat Map')
-%     xlabel('Pixels')
-%     ylabel('Pixels')
+    % Flag pixels that have been edited to check.
+    imgTrack = img;
+    imgTrack(pxlTracker) = 65536;
     
     % Save the edited image to the despeckled directory at fdirNew.
     c = [ 'Threshold ratio: ', num2str(RATIO), '. ', ...
          'Sampling radius: ', num2str(SR), '.' ];
     appendedfname = [fname,'_despeckled.tif'];
-%     imwrite( imgDespeckle,appendedfname,'tif','Comment',s );
-    imwrite( imgDespeckle,appendedfname,'tif','Description',c );
+    appendedfname2 = [fname,'_tracking.tif'];
+    % Save new despeckled image.
+    imwrite( imgEdit,appendedfname,'tif','Description',c );
+    % Save image illustrating the pixels that have been edited.
+    imwrite( imgTrack,appendedfname2,'tif','Description',c );
 end
 
 cd(startDir)
 
-function newInt = sample(R,C,I,SR)
+function newInt = sample(R,C,I,idx)
 % If a speckle is found, average the points surrounding it.
 % Inputs: R,C: row and column number of the current pixel in question.
 %         I: image matrix to update
 %         SR: sampling radius
 % Output: newInt: new intensity value to assign to the pixel.
 
-samples = cat( 1, I(R-SR, C-SR:C+SR)', ...
-                  I(R-SR-1:R+SR-1, C-SR), ...
-                  I(R+SR, C-SR:C+SR)', ...
-                  I(R-SR-1:R+SR-1, C+SR) );
+% Sample neighbors above, below, to the left, and to the right of the
+% current pixel.
+
+rows = [ 1;  0; -1; 1; -1; 1; 0; -1 ];
+cols = [-1; -1; -1; 0;  0; 1; 1;  1 ];
+
+nSamples = numel(idx);
+samples = zeros(nSamples + 1,1);
+
+for iSample = 1:nSamples
+    samples(iSample) = I( R + rows(idx(iSample)), C + cols(idx(iSample)) );
+end
+
+samples(end) = I(R,C)/2;
+
 newInt = mean(samples);
 
 end
