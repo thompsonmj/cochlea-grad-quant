@@ -29,22 +29,22 @@ threshVal = (1 - percentile)*maxVal;
 
 % Check if the profile contains a single region above the specified
 % threshold. If not, smoothing or percentile may need to be altered.
-if max(diff(find(profile > threshVal))) > 1
-    x = [1:numel(profile)];
-    figure
-    plot(x,threshVal,'.','Color','k')
-    hold on, plot(x,profile), hold off;
-    answer = questdlg(['WARNING: Profile above specified threshold is' ...
-        'discontinuous. Proceed with current settings?'], ...
-        'Discontinuous profile.', ...
-        'Proceed','Quit','Quit');
-    switch answer
-        case 'Proceed'
-            warning('Calculating center-of-mass using discontinuous profile.')
-        case 'Quit'
-            error('Choose a new threshold percentile or adjust smoothing.')
-    end
-end
+% if max(diff(find(profile > threshVal))) > 1
+%     x = [1:numel(profile)];
+%     figure
+%     plot(x,threshVal,'.','Color','k')
+%     hold on, plot(x,profile), hold off;
+%     answer = questdlg(['WARNING: Profile above specified threshold is' ...
+%         'discontinuous. Proceed with current settings?'], ...
+%         'Discontinuous profile.', ...
+%         'Proceed','Quit','Quit');
+%     switch answer
+%         case 'Proceed'
+%             warning('Calculating center-of-mass using discontinuous profile.')
+%         case 'Quit'
+%             error('Choose a new threshold percentile or adjust smoothing.')
+%     end
+% end
 
 xRegion = find(profile > threshVal);
 yRegion = profile(profile > threshVal) - threshVal;

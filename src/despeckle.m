@@ -19,8 +19,8 @@ startDir = pwd;
 %[file,path] = uigetfile;
 
 % Select a directory of z stacks
-% fdir = uigetdir;
-fdir = 'F:\projects\cochlea\data\img\sw\wt\E12.5\30_SW33-1S\tif-orient\mip\sep-ch\to-despeckle';
+fdir = uigetdir;
+% fdir = 'F:\projects\cochlea\data\img\sw\wt\E12.5\30_SW33-1S\tif-orient\mip\sep-ch\to-despeckle';
 
 % Make struct of files in directory.
 files = dir( fullfile(fdir, '*.tif') );
@@ -50,7 +50,7 @@ for iFile = 1:nFiles
     % Intensity difference ratio to trigger despeckling. Normalized to the
     % difference between the image's max and min intensity. Used to
     % calculate a differense threshold value for neighboring pixels.
-    RATIO = 0.2;
+    RATIO = 0.01;
     
     % Sampling radius. How far a 'speckled' pixel looks to check what it
     % should be.

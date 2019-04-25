@@ -1,21 +1,12 @@
 function normOutput = normdat(profileSet)
 
-%%%	use sparse matrix for inversion in the chi^2 norm code. not sure if sparse already used
-
-%%%load('Data8DMU_test.mat');
-%%%load('Data8DMU_Noi_test.mat'); % Replaced with below
-%%%load('psmadDat.mat');
-
-%%%nEmbryos = 5000; %embryoSize;  % Here you could just change the number of embryos you would 
-                  %like to use in the normalization.
-
+%%%	use sparse matrix for inversion in the chi^2 norm code. 
+%%% not sure if sparse already used
 
 [nPts, nProfiles] = size(profileSet);
                   
 % Rescales data to [0,1] interval
-%%%xScaled = (0:0.02:1)'; % Replaced with below
 xScaled = (0:1/(nPts-1):1)';
-%%%dpp_matrix = zeros(51,nEmbryos);
 profileRawMatrix = zeros(nPts, nProfiles);
 profileExtrMatrix = zeros(nPts, nProfiles);
 profileExtrMatrix2 = zeros(nPts, nProfiles);
@@ -24,16 +15,12 @@ profileIntMatrix = zeros(nPts, nProfiles);
 idx = 1;
 
 % Specific call to normalization algorithms
-    for i = 1:nProfiles
-        %%%Data_ini(:,i) = data_out{1,i}(3,:)';
-        %%%Data(:,i) = dataF{1,i}(3,:)'; % Replaced with below
-        Data(:,i) = profileSet(:,i);
-%         Data(:,i) = signalSet{1,i}(1,:)';
-    end
+for i = 1:nProfiles
+    Data(:,i) = profileSet(:,i);
+end
 
 % Normalization    
  for j = 1:nProfiles   
-    %%%dpp_matrix(:,j) = Data_ini(:,j);
     profileRawMatrix(:,j) = Data(:,j);
     profileExtrMatrix(:,j) = extremanorm(Data(:,j));
     profileExtrMatrix2(:,j) = extremanorm2(Data(:,j));
@@ -248,7 +235,7 @@ B = mean(I,1);
 C_mean0= mean((I - ones(size(I,1),1)*B),2);
 onemat = ones(size(I,1),1);
 %%%c_err0 = 1e-4; 
-c_err0 = 1e-2;
+c_err0 = 1e-4;
 C_ERR0 = 1e-4;
 c_err = 51;
 c_err_min = 100;
@@ -268,14 +255,9 @@ while c_err > c_err0
     
     if nAttempts > threshIterator*1000
         c_err0 = c_err0*2;
-        threshIterator = threshIterator + 1;
-%         disp('Relaxing error threshold.')
-%         disp(['Current min: ',num2str(c_err_min)])        
+        threshIterator = threshIterator + 1;      
         disp(['New threshold: ',num2str(c_err0)])
         disp(['No. of attempts: ',num2str(nAttempts)]);
-%         eff = nAttempts/t;
-%         disp(['Efficiency: ',num2str(eff),' attempts/s']);
-%         disp(' ')
     end
     
     for iProfile = 1:nProfiles

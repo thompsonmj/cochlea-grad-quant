@@ -247,23 +247,47 @@ function C = CochleaDataObj(varargin)
             continue
         end
         %% (1) Smooth raw data.
-        SmRawDat = smoothrawdata( RawDat, circPsn );
-        %% (2) Norm smoothed data.
+        method = 'loess';
+        SmRawDat = smoothrawdata( RawDat, circPsn, method );
+        %% (2) Norm smoothed data. Rescale to raw levels.
         fprintf('Normalizing data in section %i of %i.\n',iSec,nSecs)
+
+        % Run normalization.
         NormDat = chisqnormwrapper( SmRawDat );
+
+        % Rescale.
         for iTgt = 1:nTgts
             NormDatChiSq.(T{iTgt}) = NormDat.(T{iTgt}).chiSq;
+            
+            minSmDat = min(min( mean(SmRawDat.(T{iTgt}), 2) ));
+            maxSmDat = max(max( mean(SmRawDat.(T{iTgt}), 2) ));
+            minNormDat = min(min( mean(NormDatChiSq.(T{iTgt}), 2) ));
+            maxNormDat = max(max( mean(NormDatChiSq.(T{iTgt}), 2) ));
+
+            NormDatChiSq.(T{iTgt}) = ( NormDatChiSq.(T{iTgt}) - ...
+                minNormDat + minSmDat ) * ...
+                ((maxSmDat - minSmDat)/(maxNormDat - abs(minNormDat)));
         end
-        %% (3) Average data.
+        %% (3) Average data. Subtract remaining background.
         for iTgt = 1:nTgts
-            meanNormDat.(T{iTgt}) = mean( NormDatChiSq.(T{iTgt}), 2 );
+            MeanNormDat.(T{iTgt}) = mean( NormDatChiSq.(T{iTgt}), 2 );
+            
+            if ~isequal(T{iTgt}, 'TOPRO3')
+                % Non-nuclear channels (move min to zero).
+                minDat = min(min(MeanNormDat.(T{iTgt})));
+                RawDat.(T{iTgt}) = RawDat.(T{iTgt}) - minDat;
+                NormDatChiSq.(T{iTgt}) = NormDatChiSq.(T{iTgt}) - minDat;
+                MeanNormDat.(T{iTgt}) = MeanNormDat.(T{iTgt}) - minDat;
+            else
+                % Nuclear channel (do not move min to zero).
+            end
         end
         %% (4) Align data.
         algnMode = 'com';
-        PERCENTILE = 1/3;
+        PERCENTILE = 1/3; % Use top PERCENTILE of data for alignment.
         
         DatToAlgn.SmNorm = NormDatChiSq;
-        template = meanNormDat.pSmad;
+        template = MeanNormDat.pSmad;
         AlNormDat = ...
             alignpeaks( DatToAlgn, template, algnMode, PERCENTILE );
         clear datToAlgn;
