@@ -3,23 +3,23 @@ function imgDespeckled = despeckle()
 % preserving data fidelity.
 %
 % To use:
-% 0.1) In .../tif-orient/sep-ch/sub-bkgd/sep-z/_dat_, store all images to be
-% despeckled. These should be separated single images (not z-stacks).
-% 0.2) In .../tif-orient/sep-ch/sub-bkgd/sep-z/despeckle/_dat_, store all
-% images that do not need despeckled.
-% 1) Run this file and select the directory with the files to be
-% despeckled.
+% Setup
+%   Store all images to be despeckled in a directory that navigates to
+%   ../despeckle/_dat_ to store the despeckled versions.
+% Execute
+%   Run this file on that directory.
 % This function will process each file, append "_despeckled" to the
 % filename, and save it to the location in step 0.2. Writing will add a
 % comment to the image noting the threshold used for despeckling.
 
-startDir = pwd;
-
 % Select an image stack.
 %[file,path] = uigetfile;
 
+startDir = pwd;
+
 % Select a directory of z stacks
 fdir = uigetdir;
+cd(fdir)
 % fdir = 'F:\projects\cochlea\data\img\sw\wt\E12.5\30_SW33-1S\tif-orient\mip\sep-ch\to-despeckle';
 
 % Make struct of files in directory.
@@ -27,8 +27,8 @@ files = dir( fullfile(fdir, '*.tif') );
 nFiles = length(files);
 
 % Move to the folder where despeckled images are to be saved.
-fdirNew = fullfile(fdir,'..','despeckle','_dat_');
-cd(fdirNew);
+% fdirNew = fullfile(fdir,'..','despeckle','_dat_');
+% cd(fdirNew);
 
 for iFile = 1:nFiles 
     %% Load file
@@ -50,7 +50,7 @@ for iFile = 1:nFiles
     % Intensity difference ratio to trigger despeckling. Normalized to the
     % difference between the image's max and min intensity. Used to
     % calculate a differense threshold value for neighboring pixels.
-    RATIO = 0.01;
+    RATIO = 0.2;
     
     % Sampling radius. How far a 'speckled' pixel looks to check what it
     % should be.
@@ -125,12 +125,13 @@ for iFile = 1:nFiles
     % Save the edited image to the despeckled directory at fdirNew.
     c = [ 'Threshold ratio: ', num2str(RATIO), '. ', ...
          'Sampling radius: ', num2str(SR), '.' ];
-    appendedfname = [fname,'_despeckled.tif'];
-    appendedfname2 = [fname,'_tracking.tif'];
+    appendedfname = [fname,'_despeckled_',num2str(RATIO),'.tif'];
+    appendedfname2 = [fname,'_tracking_',num2str(RATIO),'.tif'];
     % Save new despeckled image.
     imwrite( imgEdit,appendedfname,'tif','Description',c );
     % Save image illustrating the pixels that have been edited.
     imwrite( imgTrack,appendedfname2,'tif','Description',c );
+
 end
 
 cd(startDir)

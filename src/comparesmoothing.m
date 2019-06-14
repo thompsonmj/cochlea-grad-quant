@@ -2,8 +2,8 @@
 
 nCoch = numel(C);
 VALIDTARGETS = ["pSmad","Sox2","TOPRO3"];  
-winSizes = 10:10:2000;
-winSizesMicrons = win   Sizes./3.2073; % 3.2073 pixels/um
+winSizes = 10:10:1000;
+winSizesMicrons = winSizes./3.2073; % 3.2073 pixels/um
 nWins = numel(winSizes);
 
 % for iCoch = 1:nCoch
@@ -13,7 +13,6 @@ nWins = numel(winSizes);
     S = fieldnames(coch.Dat); % Section names
     nSecs = numel(S);
     
-
     for iSec = 1:nSecs
         disp(['Section ',S{iSec},' (',num2str(iSec),'/',num2str(nSecs),')'])
         figure
@@ -53,9 +52,6 @@ nWins = numel(winSizes);
         SecDerMovmeanErr = struct;
         SecDerSgolayErr = struct;
         SecDerLoessErr = struct;
-%         SlopeMovmeanErr = struct;
-%         SlopeSgolayErr = struct;
-%         SlopeLoessErr = struct;
         for iTgt = 1:nTgts
             for iWin = 1:nWins
                 MovmeanErr.(T{iTgt})(iWin) = ...
@@ -170,49 +166,58 @@ nWins = numel(winSizes);
             maxd2Err = max(maxD2ErrList);
             %% movmean 
             subplot(nTgts,4,iTgt + 3 + spPsn)
-            yyaxis left
-            plot(winSizesMicrons, MovmeanErr.(T{iTgt}),'r','LineStyle','-','Marker','.','MarkerSize',8,'LineWidth',1)
-            ylim([0, maxErr]) 
+%             plot(MovmeanErr.(T{iTgt})(1:end-1),FirstDerMovmeanErr.(T{iTgt}),'r','LineStyle','-','Marker','.','MarkerSize',8,'LineWidth',1)
+            plot(winSizesMicrons,MovmeanErr.(T{iTgt}),'r','LineStyle','-','LineWidth',1)
+%             yyaxis left
+%             plot(winSizesMicrons, MovmeanErr.(T{iTgt}),'r','LineStyle','-','Marker','.','MarkerSize',8,'LineWidth',1)
+%             ylim([0, maxErr]) 
+            xlabel('Window Size')
             ylabel('RMSE')
-            yyaxis right
-            plot(winSizesMicrons(1:end-2), SecDerMovmeanErr.(T{iTgt}),'Color','r','Marker','+')
+%             yyaxis right
+%             plot(winSizesMicrons(1:end-2), SecDerMovmeanErr.(T{iTgt}),'Color','r','Marker','+')
 %             plot(winSizesMicrons(1:end-1), SlopeMovmeanErr.(T{iTgt}),'Color','r','Marker','o')
-            ylim([mind2Err, maxd2Err]);
-            ylabel('d^2RMSE/dwin^2 (-+-)');
+%             ylim([mind2Err, maxd2Err]);
+%             ylabel('d^2RMSE/dwin^2 (-+-)');
             title([S{iSec},' ',T{iTgt}])
             grid on
             hold on
             %% sgolay
             subplot(nTgts,4,iTgt + 3 + spPsn)
-            yyaxis left
-            plot(winSizesMicrons, SgolayErr.(T{iTgt}),'g','LineStyle','-','Marker','.','MarkerSize',8,'LineWidth',1)
-            ylim([0, maxErr]) 
+%             plot(SgolayErr.(T{iTgt})(1:end-1),FirstDerSgolayErr.(T{iTgt}),'g','LineStyle','-','Marker','.','MarkerSize',8,'LineWidth',1)
+            plot(winSizesMicrons,SgolayErr.(T{iTgt}),'g','LineStyle','-','LineWidth',1)
+%             yyaxis left
+%             plot(winSizesMicrons, SgolayErr.(T{iTgt}),'g','LineStyle','-','Marker','.','MarkerSize',8,'LineWidth',1)
+%             ylim([0, maxErr]) 
+            xlabel('Window Size')
             ylabel('RMSE')
-            yyaxis right
-            plot(winSizesMicrons(1:end-2), SecDerSgolayErr.(T{iTgt}),'Color','g','Marker','+')
+%             yyaxis right
+%             plot(winSizesMicrons(1:end-2), SecDerSgolayErr.(T{iTgt}),'Color','g','Marker','+')
 %             plot(winSizesMicrons(1:end-1), SlopeSgolayErr.(T{iTgt}),'Color','g','Marker','o')
-            ylim([mind2Err, maxd2Err]);
-            ylabel('d^2RMSE/dwin^2 (-+-)');
+%             ylim([mind2Err, maxd2Err]);
+%             ylabel('d^2RMSE/dwin^2 (-+-)');
             title([S{iSec},' ',T{iTgt}])
             grid on
             hold on
             %% loess
             subplot(nTgts,4,iTgt + 3 + spPsn)
-            yyaxis left
-            plot(winSizesMicrons, LoessErr.(T{iTgt}),'b','LineStyle','-','Marker','.','MarkerSize',8,'LineWidth',1)
-            ylim([0, maxErr]) 
-            ylabel('RMSE');
-            yyaxis right
-            plot(winSizesMicrons(1:end-2), SecDerLoessErr.(T{iTgt}),'Color','b','Marker','+')
+%             plot(LoessErr.(T{iTgt})(1:end-1),FirstDerLoessErr.(T{iTgt}),'b','LineStyle','-','Marker','.','MarkerSize',8,'LineWidth',1)
+            plot(winSizesMicrons,LoessErr.(T{iTgt}),'b','LineStyle','-','LineWidth',1)
+%             yyaxis left
+%             plot(winSizesMicrons, LoessErr.(T{iTgt}),'b','LineStyle','-','Marker','.','MarkerSize',8,'LineWidth',1)
+%             ylim([0, maxErr]) 
+            xlabel('Window Size')
+            ylabel('RMSE')
+%             yyaxis right
+%             plot(winSizesMicrons(1:end-2), SecDerLoessErr.(T{iTgt}),'Color','b','Marker','+')
 %             plot(winSizesMicrons(1:end-1), SlopeLoessErr.(T{iTgt}),'Color','b','Marker','o')
-            ylim([mind2Err, maxd2Err]);
-            ylabel('d^2RMSE/dwin^2 (-+-)');
+%             ylim([mind2Err, maxd2Err]);
+%             ylabel('d^2RMSE/dwin^2 (-+-)');
             title([S{iSec},' ',T{iTgt}])
             grid on
             hold on
             
             legend('movmean','sgolay','loess','Location','best')
-            xlabel('Window size [\mum]')
+%             xlabel('Window size [\mum]')
 
         end
         %% Calculate PI with window size
@@ -257,5 +262,4 @@ nWins = numel(winSizes);
         
         
     end
-    
 % end
