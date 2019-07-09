@@ -262,7 +262,9 @@ function C = CochleaDataObj_MaxProj(varargin)
 %             plot(RawDat.(T{iTgt}),'Color','k','LineStyle',':')
 %         end
         %% (2) Smooth raw data.
-        % ...
+        % Dynamically choose window size for each profile to optimize
+        % dRMSE/dWin vs abs(RMSE) loess
+        % Compare loess to n-term fft fit.
         method = 'loess';
         SmMaxProj = smoothrawdata( MaxProj, circPsn, method );
         %% (3) Subtract background.
