@@ -57,8 +57,10 @@ for iBook = 1:nBooks
         sizeErrors{sizeErrCount} = bookLocNameExt;
     end
     L = sheetsNum{1}(end,1);
+    % Match value of final x-psn for each channel.
+    % Ensure scaled from points to microns (never more than 1k microns)
     for iSheet = 1:nSheets
-        if sheetsNum{iSheet}(end,1) == L
+        if sheetsNum{iSheet}(end,1) == L && sheetsNum{iSheet}(end,1) < 1000
             % Do nothing.
         else
             xPsnErrCount = xPsnErrCount + 1;
