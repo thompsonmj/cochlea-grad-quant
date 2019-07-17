@@ -11,9 +11,8 @@ function out = xls2csv(f)
 %   Writes *.csv files for every sheet in an Excel workbook to the workbook's directory.
 %       E.g. 'Book1_Sheet1.csv'
 
-[status,sheetNames,~] = xlsfinfo(f);
-%assert(isequal(status,'Microsoft Excel Spreadsheet'), ...
-%    'Invalid file. Please use a Microsoft Excel .xls or .xlsx file.')
+[~,sheetNames,~] = xlsfinfo(f);
+
 nSheets = size(sheetNames,2);
 
 [fdir, fname, ~] = fileparts( fullfile( f ) );
