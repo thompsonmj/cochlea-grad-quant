@@ -16,7 +16,6 @@ switch nargin
     case 1
         fdir = varargin{1};
 end
-
 books = dir(fullfile(fdir,'*.xlsx'));
 nBooks = length(books); 
 
@@ -26,14 +25,13 @@ xPsnErrCount = 0;
 nameErrors = {};
 sizeErrors = {};
 xPsnErrors = {};
-
 for iBook = 1:nBooks
     [fdir, fname, fext] = fileparts( ...
         fullfile( books(iBook).folder, books(iBook).name ) );
     bookLocNameExt = fullfile(fdir,[fname,fext]);
     
     [~, sheets] = xlsfinfo(bookLocNameExt);
-    
+    %% Validate sheet (channel/target) names.
     validSheetNamesTF = checkifvalidtargets( sheets );
     if validSheetNamesTF
         % Do nothing.
@@ -50,12 +48,14 @@ for iBook = 1:nBooks
         sheetsRaw{iSheet} = raw;
         sheetsNum{iSheet} = num;
     end
+    %% Validate data consistency in each channel.
     if numel(unique(cellfun('size',sheetsRaw,1))) == 1
         % Do nothing.
     else
         sizeErrCount = sizeErrCount + 1;
         sizeErrors{sizeErrCount} = bookLocNameExt;
     end
+    %% Validate x-position.
     L = sheetsNum{1}(end,1);
     % Match value of final x-psn for each channel.
     % Ensure scaled from points to microns (never more than 1k microns)
