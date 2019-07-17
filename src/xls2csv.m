@@ -3,10 +3,10 @@ function out = xls2csv(f)
 % names to the end of the filenames.
 %
 % Input:
-%   f: Path to the Excel file. 
+%   > f: Path to the Excel file. 
 %       E.g. 'Book1.xlsx'
 % Output(s):
-%   Cell array of character arrays of file names for newly written *.csv files.
+%   > out: Cell array of character arrays of file names for newly written *.csv files.
 % Other behavior:
 %   Writes *.csv files for every sheet in an Excel workbook to the workbook's directory.
 %       E.g. 'Book1_Sheet1.csv'
