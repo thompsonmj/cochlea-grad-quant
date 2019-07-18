@@ -19,6 +19,9 @@ end
 books = dir(fullfile(fdir,'*.xlsx'));
 nBooks = length(books); 
 
+errMsg = 'No Excel workbooks in this directory.';
+assert(nBooks > 0, errMsg)
+
 nameErrCount = 0;
 sizeErrCount = 0;
 xPsnErrCount = 0;
@@ -39,7 +42,7 @@ for iBook = 1:nBooks
         nameErrCount = nameErrCount + 1;
         nameErrors{nameErrCount} = bookLocNameExt;
     end
-    
+    %% Validate data consistency in each channel.
     nSheets = numel(sheets);
     sheetsRaw = cell(nSheets,1);
     sheetsNum = cell(nSheets,1);
@@ -47,8 +50,9 @@ for iBook = 1:nBooks
         [num,~,raw] = xlsread(bookLocNameExt, sheets{iSheet});
         sheetsRaw{iSheet} = raw;
         sheetsNum{iSheet} = num;
+        errMsg = ['Sheet ',sheets{iSheet},' in ',bookLocNameExt,' is empty.'];
+        assert(~isempty(num),errMsg);
     end
-    %% Validate data consistency in each channel.
     if numel(unique(cellfun('size',sheetsRaw,1))) == 1
         % Do nothing.
     else
@@ -60,7 +64,8 @@ for iBook = 1:nBooks
     % Match value of final x-psn for each channel.
     % Ensure scaled from points to microns (never more than 1k microns)
     for iSheet = 1:nSheets
-        if sheetsNum{iSheet}(end,1) == L && sheetsNum{iSheet}(end,1) < 1000
+        last = sheetsNum{iSheet}(end,1);
+        if last == L && last < 1000
             % Do nothing.
         else
             xPsnErrCount = xPsnErrCount + 1;
