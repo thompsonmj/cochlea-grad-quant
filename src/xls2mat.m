@@ -54,9 +54,10 @@ for iBook = 1:nBooks
 end
 startDir = pwd;
 cd(fdir)
-save('RawDat.mat','RawDat')
+outfname = 'RawDat_16-bit.mat';
+save(outfname,'RawDat')
 cd(startDir)
 
-out = fullfile(fdir,'RawDat.mat');
+out = fullfile(fdir,outfname');
 
 end
