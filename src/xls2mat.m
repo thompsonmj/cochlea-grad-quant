@@ -27,8 +27,6 @@ nBooks = length(books);
 [validTF, report] = validaterawcochleadata( fdir );
 assert(validTF,report)
 
-
-
 for iBook = 1:nBooks
     [fdir, fname, fext] = fileparts( ...
         fullfile( books(iBook).folder, books(iBook).name ) );
@@ -58,6 +56,6 @@ outfname = 'RawDat_16-bit.mat';
 save(outfname,'RawDat')
 cd(startDir)
 
-out = fullfile(fdir,outfname');
+out = fullfile(fdir,outfname);
 
 end
