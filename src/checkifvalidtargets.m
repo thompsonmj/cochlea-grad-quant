@@ -11,11 +11,12 @@ function validTF = checkifvalidtargets ( targets )
 VALIDTARGETFILE = 'VALIDTARGETS.csv';
 
 validTargets = delimread(VALIDTARGETFILE,',','text');
+validTargets = validTargets.text;
 
 nT = numel(targets);
 
 for iT = 1:nT
-    if ismember(targets(iT), validTargets.text)
+    if ismember(targets(iT), validTargets)
         validTF = true;
     else
         validTF = false;
