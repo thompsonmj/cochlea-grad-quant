@@ -1,4 +1,4 @@
-function smDat = smoothrawdata(rawDat,method,win)
+function smDat = smoothrawdata(rawDat, method, win)
 %SMOOTHRAWDATA Smooth data without edge effects imposed by 'smoothdata'.
 %
 % Inputs:
@@ -23,14 +23,17 @@ assert( isequal(method, 'loess') | ...
 % side-step the assumption 'smoothdata' makes that data should start and
 % end at zero.
 appendSize = ceil(win/2);
-startPortion = repmat(rawDat(1),appendSize,1);
-endPortion = repmat(rawDat(end),appendSize,1);
-rawDatAppended = [startPortion; rawDat; endPortion];
-nPtsAppended = numel(rawDatAppended);
+startPortion = repmat(rawDat(1), appendSize, 1);
+endPortion = repmat(rawDat(end), appendSize, 1);
+rawDat_Appended = [startPortion; rawDat; endPortion];
+nPts_Appended = numel(rawDat_Appended);
 
-smDatAppended = smoothdata(rawDatAppended,method,win);
+smDat_Appended = smoothdata(rawDat_Appended, method, win);
 
-smDatUnappended = ... 
-    smDatAppended( appendSize+1 : nPtsAppended - (appendSize+1) );
-smDat = [smDatUnappended];
+smDat_Unappended = ... 
+    smDat_Appended( appendSize+1 : nPts_Appended - appendSize );
+smDat = [smDat_Unappended];
+
+errMsg = 'Data input and output size is not consistent.';
+assert( numel(rawDat) == numel(smDat) );
 end
