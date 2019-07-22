@@ -65,7 +65,7 @@ for iBook = 1:nBooks
     % Ensure scaled from points to microns (never more than 1k microns)
     for iSheet = 1:nSheets
         last = sheetsNum{iSheet}(end,1);
-        if last == L && last < 1000
+        if last == L% && last < 1000
             % Do nothing.
         else
             xPsnErrCount = xPsnErrCount + 1;
