@@ -1,3 +1,10 @@
+clearvars -except out
+
+if ~exist('out')
+    SmOptPath = 'F:\projects\cochlea\data\img\sw\wt\E12.5\SmOpt.mat';
+    load(SmOptPath)
+end
+
 methods = { 'movmean', ...
            'movmedian', ...
            'gaussian', ...
@@ -17,17 +24,17 @@ assert(status)
 startDir = pwd;
 cd(dirName)
 
-subplot = @(m,n,p) subtightplot(m,n,p,0.04,0.08,0.02 );
+subplot = @(m,n,p) subtightplot(m,n,p,0.05,0.08,0.02 );
 
-for iP = 1:1
-    figH = figure(figIDs(iP));
-%     [ha,pos] = tight_subplot(2,4,0.05,0.1,0.05);
+for iP = 173:nProfiles
+    worker = getCurrentWorker;
+    subplotsH = figure(figIDs(iP));
+    subplotsH.Units = 'Normalized';
+    subplotsH.OuterPosition = [0, 0, 1, 1];
     for iM = 1:nMethods
         
-        subplot(3,4,iM)
-        
-%         axes(ha(iM));
-        
+        subplot(4,2,iM)
+                
         hold on
 
         nWins = size(out{iP}.smProfiles_Cell{iM},1);
@@ -62,13 +69,13 @@ for iP = 1:1
         optNorm = opt/normFactor;
         plot(xPsn,optNorm, ...
             'Color','k', ...
-            'LineWidth',3)
+            'LineWidth',4)
         
         if out{iP}.targ == "TOPRO3"
-            ylim([0 1])
+            ylim([0,1])
         else
             ymin = min(raw)/normFactor;
-            ylim([ymin 1])
+            ylim([ymin,1])
         end
         
         optWin = out{iP}.optWin_Cell{iM};
@@ -80,10 +87,7 @@ for iP = 1:1
         title(methods{iM})
         xlabel('Position [\mum]')
         ylabel('Fluorescence [AU]')
-        
-%         set(gca,'XTickLabel',cellstr(num2str(get(gca,'XTick')')))
-%         set(gca,'YTickLabel',cellstr(num2str(get(gca,'YTick')'))) 
-        
+                
         set(gca,'clim',winSizesMicrons([1,end]));
         cbar = colorbar;
         cbar.Label.String = 'Smoothing Window Size [\mum]';
@@ -95,9 +99,14 @@ for iP = 1:1
         
     end
     
-    % Get the corresponding cochlea image.
+    %% Get the corresponding cochlea image.
+    
+%     subplot(3,4,10:11)
+    
     cNo = out{iP}.Cochlea(2:end);
-    workDirInfo = dir(fullfile(pwd,'/..'));
+    w = what('..');
+    workPath = w.path;
+    workDirInfo = dir(workPath);
     nObjects = length(workDirInfo);
     for iO = 1:nObjects
         str = workDirInfo(iO).name;
@@ -107,25 +116,108 @@ for iP = 1:1
             continue % Keep checking
         else
             cochDir = str;
+            w = what(fullfile('..',cochDir));
+            cochPath = w.path;
             break % Found it
         end
     end
     
     imgDir = fullfile(cochDir,'tif-orient','sep-ch','mip','despeckle','_dat_');
+    w = what(fullfile('..',imgDir));
+    imgDirPath = w.path;
     
+    % Find correct image file and add to subplot.
+    sec = out{iP}.Section;
+    targ = out{iP}.targ;
+    imgDirInfo = dir(fullfile(imgDirPath,'*.tif'));
+    nObjects = length(imgDirInfo);
+    for iO = 1:nObjects
+        str = imgDirInfo(iO).name;
+        expression1 = ['^',sec,'.+',targ,'_mip.tif'];
+        expression2 = ['^',sec,'.+',targ,'_mip_despeckled'];
+        [sIdx1,eIdx1] = regexp(str,expression1,'ignorecase');
+        [sIdx2,eIdx2] = regexp(str,expression2,'ignorecase');
+        if isempty(sIdx1) && isempty(sIdx2)
+            continue % Keep checking
+        elseif isempty(sIdx2) && ~isempty(sIdx1)
+            imgFile = str; % Found a non-despeckled image.'
+            break
+        elseif isempty(sIdx1) && ~isempty(sIdx2)
+            imgFile = str; % Found a despeckled image.
+            break
+        end
+    end
     
+    imgFilePath = fullfile(imgDirPath,imgFile);
     
-%     figH.Units = 'normalized';
-%     figH.OuterPosition = [0 0 1 1];
+    img = imread(imgFilePath);
+% % %     hImg = axes('Position', [0.35, 0.05, 0.3, 0.28]);
+    
+    hold on
+    
+%     img = flipdim(img,1);
+    figCochleaH = figure(iP + nProfiles);
+% % %     imagesc(hImg,img);
+    imagesc(img);
+    truesize
+% % %     set(hImg,'XTick',[])
+% % %     set(hImg,'YTick',[])
+    colormap(figCochleaH,'bone')
+    
+    % Overlay ROI
+    try
+        roiPath = fullfile(imgDirPath,[sec,'.roi']);
+        roi = ReadImageJROI(roiPath);
+        x = roi.mnCoordinates(:,1);
+        y = roi.mnCoordinates(:,2);
+        xx = [min(x):max(x)];
+        yy = spline(x,y,xx);
+        hold on
+        plot(x,y, ...
+            '.', ...
+            'MarkerSize',10, ...
+            'Color','w')
+        set(gca,'YDir','reverse')
+        plot(xx,yy, ...
+            'LineWidth', 1, ...
+            'Color','w')
+            set(gca,'YDir','reverse')
+            
+                warning('off', 'Images:initSize:adjustingMag');
+    %     truesize
+        splineH = plot(xx,yy, ...
+            'LineWidth', 0.5*roi.nStrokeWidth, ...
+            'Color', 'w');
+            set(gca,'YDir','reverse')
 
-    fname = [out{iP}.Cochlea,'_',out{iP}.Section,'_',out{iP}.targ];
+        splineH.Color(4) = 0.2;
+        
+    catch
+        str = ['ROI file not found for ',roiPath];
+        warning(['ROI file not found for',roiPath])
+        t = text(10,maxVal,str);
+        t.Interpreter = 'none';
+        t.Color = 'red';
+%         img = flip(img);
+%         cochImgH = imagesc(figCochleaH,img);
+    end
+
+    figCochleaH.Children.XTick = [];
+    figCochleaH.Children.YTick = [];
+    
+    hold off
+    
+    subplotsfname = [out{iP}.Cochlea,'_',out{iP}.Section,'_',out{iP}.targ,'_plots'];
+    cochleafname = [out{iP}.Cochlea,'_',out{iP}.Section,'_',out{iP}.targ,'_cochlea'];
 %     saveas(figure(figIDs(iP)),fname)
-    saveas(figH,fname)
+    saveas(subplotsH,subplotsfname,'png')
+    saveas(figCochleaH,cochleafname,'png')
 
-    fig = fullfile('..',dirName,[fname,'.fig']);
-    fig2img(fig,'png')
+%     fig = fullfile('..',dirName,[subplotsfname,'.fig']);
+%     fig2img(fig,'png')
     
-    close(figH)
+    close(subplotsH)
+    close(figCochleaH)
     
 end
 

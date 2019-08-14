@@ -51,7 +51,7 @@ for iElement = 3:nElements
         folder = contents(iElement).folder;
         name = contents(iElement).name;
         thisLocation = fullfile(folder,name);
-        if contents(iElement).name == "quant-prof"
+        if contents(iElement).name == 'quant-prof'
             % Element is the 'quant-prof' directory.
             finalDir = thisLocation;
             return
