@@ -23,22 +23,30 @@ for iElement = 3:nElements % Start at 3. Elements 1 and 2 are '.' and '..'.
             ~isempty(s) && ...
             ~isempty(e)
         % Element is a directory with digits at start of name before '_'.
-        quantProfDir = findquantprofdir( fullfile(folder,name) );
+        quantProfDir = findquantprofdirLOCAL( fullfile(folder,name) );
     else
         % Element is not a folder or is not a cochlea sample.
         continue
     end
     cochleaID = ['C',name(s:e)];
-    load(fullfile(quantProfDir,'RawDat_16-bit.mat'),'RawDat');
-    FullRawDat.(cochleaID) = RawDat;
-    clear 'RawDat'
+    
+    try
+        load(fullfile(quantProfDir,'RawDat_16-bit.mat'),'RawDat');
+        FullRawDat.(cochleaID) = RawDat;
+        clear 'RawDat'
+    catch
+        msg = [fullfile(quantProfDir,'RawDat_16-bit.mat'),' not found'];
+        warning(msg)
+    end
+    
+
 end
 
 save(fullfile(workdir,'FullRawDat.mat'),'FullRawDat')
 
 end
 
-function finalDir = findquantprofdir(thisDir)
+function finalDir = findquantprofdirLOCAL(thisDir)
 contents = dir(thisDir);
 nElements = numel(contents);
 validDirCounter = 0;
@@ -51,7 +59,7 @@ for iElement = 3:nElements
         folder = contents(iElement).folder;
         name = contents(iElement).name;
         thisLocation = fullfile(folder,name);
-        if contents(iElement).name == 'quant-prof'
+        if contents(iElement).name == "quant-prof"
             % Element is the 'quant-prof' directory.
             finalDir = thisLocation;
             return
@@ -70,6 +78,6 @@ end
 errMsg = ['Too many valid directories to search here: ',thisDir];
 assert(validDirCounter == 1,errMsg)
 
-finalDir = findquantprofdir( nextDir );
+finalDir = findquantprofdirLOCAL( nextDir );
     
 end
