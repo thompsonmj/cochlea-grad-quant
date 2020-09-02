@@ -12,11 +12,18 @@ function [prof16bit, originalDepth] = scaleto16bit(rawProfile)
 % that incorrectly assigning a lower bit depth to a profile actually using
 % a higher depth is unlikely.
 
-errMsg = 'Invalid input dimensions.';
-assert( size(rawProfile,2) == 1, errMsg );
+% End function if entry is empty.
+if max(size(rawProfile)) == 0
+    prof16bit = [];
+    originalDepth = [];
+    return
+end
 
-maxVal = max(rawProfile);
-minVal = min(rawProfile);
+% errMsg = 'Invalid input dimensions.';
+% assert( size(rawProfile,2) == 1, errMsg );
+
+maxVal = max(max(rawProfile));
+minVal = min(min(rawProfile));
 
 errMsg = 'Input may not be negative.';
 assert( minVal >= 0, errMsg );
@@ -28,13 +35,13 @@ max32 = 2^32;
 
 if maxVal < max8
     originalDepth = 8;
-    prof16bit = round( rawProfile*2^8 );
+    prof16bit = round( rawProfile.*2^8 );
 elseif maxVal >= max8 && maxVal < max16
     originalDepth = 16;
     prof16bit = rawProfile;
 elseif maxVal >= max16 && maxVal < max32
     originalDepth = 32;
-    prof16bit = round( rawProfile/(2^16) );
+    prof16bit = round( rawProfile./(2^16) );
 else
     % Do not accept values outside the range of [0, 2^32);
     error('Input out of range.')
