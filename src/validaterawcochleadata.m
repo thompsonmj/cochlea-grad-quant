@@ -1,4 +1,4 @@
-function [validTF, report] = validaterawcochleadata( varargin )
+function [validTF, report] = validaterawcochleadata( roiType, varargin )
 %VALIDATERAWCOCHLEADATA Validate data formatting in Excel workbooks of
 %cochlea data extracted from images.
 %
@@ -16,7 +16,7 @@ switch nargin
     case 1
         fdir = varargin{1};
 end
-books = dir(fullfile(fdir,'*.xlsx'));
+books = dir(fullfile(fdir,['*',roiType,'.xlsx']));
 nBooks = length(books); 
 
 errMsg = 'No Excel workbooks in this directory.';
