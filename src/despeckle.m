@@ -1,26 +1,21 @@
 function imgDespeckled = despeckle()  
-% DESPECKLE removes/smoothes speckled immunofluorescence images while
+% DESPECKLE removes/smooths speckled immunofluorescence images while
 % preserving data fidelity.
 %
 % To use:
 % Setup
-%   Store all images to be despeckled in a directory that navigates to
-%   ../despeckle/_dat_ to store the despeckled versions.
+%   Store all images to be despeckled in a single directory.
 % Execute
 %   Run this file on that directory.
 % This function will process each file, append "_despeckled" to the
-% filename, and save it to the location in step 0.2. Writing will add a
-% comment to the image noting the threshold used for despeckling.
-
-% Select an image stack.
-%[file,path] = uigetfile;
+% filename, as well as the threshold value used.
+% Writing will also  add  comment to the image noting the threshold.
 
 startDir = pwd;
 
 % Select a directory of z stacks
 fdir = uigetdir;
 cd(fdir)
-% fdir = 'F:\projects\cochlea\data\img\sw\wt\E12.5\30_SW33-1S\tif-orient\mip\sep-ch\to-despeckle';
 
 % Make struct of files in directory.
 files = dir( fullfile(fdir, '*.tif') );
