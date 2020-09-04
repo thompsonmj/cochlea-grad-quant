@@ -43,29 +43,29 @@ for iP = 1:nPairs
         target_temp_out = zeros(round(nX*0.8)+1,nCochleae);
         for iC = 1:nCochleae
             % Isolate a single profile.
-            prof_temp = target_temp_in(:,iC);
+            profile_temp = target_temp_in(:,iC);
             % Perform noise regression on this profile using nuclear
             % channel as the noise reference signal.
-            if iT < 3 % If not 'topro3', use regression.
+            if iT < 3 % If not 'topro3', use regression and smooth.
                 % Perform noise regression on this profile using nuclear
                 % channel as the noise reference signal.
-                reg_temp = regressnoise( topro3_temp(:,iC), prof_temp );
+                regression_temp = regressnoise( topro3_temp(:,iC), profile_temp );
                 % Smooth the result.
-                smoothed_temp = smoothrawdata( reg_temp, 'movmean', win );
+                smoothed_temp = smoothrawdata( regression_temp, 'movmean', win );
                 % Include only the middle 80% for further analysis.
                 target_temp_out(:,iC) = ...
                     smoothed_temp(round(0.1*nX):round(0.9*nX));
-            elseif iT == 3 % If 'topro3', no regression.
+            elseif iT == 3 % If 'topro3', no regression, just smooth.
                 smoothed_temp = ...
                     smoothrawdata( topro3_temp(:,iC), 'movmean', win );
                 target_temp_out(:,iC) = ...
                     smoothed_temp(round(0.1*nX):round(0.9*nX));
             end
         end
-        if iT < 3
+        if iT < 3 % Anchor the mean profile at min = 0 and max = 1.
             flagged_profs.(pairs{iP}).(targets{iP,iT}) = ...
                 anchormean0to1(target_temp_out);
-        elseif iT == 3
+        elseif iT == 3 % For 'topro3', anchor mean value to 1.
             flagged_profs.(pairs{iP}).(targets{iP,iT}) = ...
                 target_temp_out./mean(target_temp_out,2);
         end
@@ -80,7 +80,7 @@ for iP = 1:nPairs
     for iT = 1:3
         target_temp_in = flagged_profs.(pairs{iP}).(targets{iP,iT});
         target_temp_y_align = aligny(target_temp_in);
-        if iT < 3
+        if iT < 3 % 
             flagged_profs.(pairs{iP}).(targets{iP,iT}) = target_temp_y_align;
         elseif iT == 3
             flagged_profs.(pairs{iP}).(targets{iP,iT}) = ...
@@ -88,7 +88,16 @@ for iP = 1:nPairs
         end
 
     end
+    % Once each target within a pair has undergone Y-alignment, joint
+    % X-alignment can be performed.
+    Y_0_temp(:,:,1) = flagged_profs.(pairs{iP}).(targets{iP,1});
+    Y_0_temp(:,:,2) = flagged_profs.(pairs{iP}).(targets{iP,2});
     
+    [y_temp,~,~,~] = alignxy(Y_0_temp);
+    clear Y_0_temp
+    
+    flagged_profs.(pairs{iP}).(targets{iP,1}) = y_temp(:,:,1);
+    flagged_profs.(pairs{iP}).(targets{iP,2}) = y_temp(:,:,2);
 end
 
 %%
@@ -102,31 +111,31 @@ load('colormaps.mat')
 figure
 subplot(1,3,1)
 hold on
-plot(pj12_prof.psmad,'color',psmad_color)
-plot(pj12_prof.jag1,'color',jag1_color)
-Y(:,:,1) = pj12_prof.psmad;
-Y(:,:,2) = pj12_prof.jag1;
-pj12_sigma_x = positionalerrorn(Y);
+plot(flagged_profs.pj12.psmad,'color',psmad_color)
+plot(flagged_profs.pj12.jag1,'color',jag1_color)
+% Y(:,:,1) = flagged_profs.pj12_prof.psmad;
+% Y(:,:,2) = flagged_profs.pj12_prof.jag1;
+% pj12_sigma_x = positionalerrorn(Y);
 
 
 subplot(1,3,2)
 hold on
-plot(ps12_prof.psmad,'color',psmad_color)
-plot(ps12_prof.sox2,'color',sox2_color)
+plot(flagged_profs.ps12.psmad,'color',psmad_color)
+plot(flagged_profs.ps12.sox2,'color',sox2_color)
 
 subplot(1,3,3)
 hold on
-plot(sj12_prof.sox2,'color',sox2_color)
-plot(sj12_prof.jag1,'color',jag1_color)
+plot(flagged_profs.sj12.sox2,'color',sox2_color)
+plot(flagged_profs.sj12.jag1,'color',jag1_color)
 
 figure
 subplot(1,3,1)
 hold on
-plot(pj13_prof.psmad,'color',psmad_color)
-plot(pj13_prof.jag1,'color',jag1_color)
+plot(flagged_profs.pj13.psmad,'color',psmad_color)
+plot(flagged_profs.pj13.jag1,'color',jag1_color)
 
 subplot(1,3,2)
 hold on
-plot(ps13_prof.psmad,'color',psmad_color)
-plot(ps13_prof.sox2,'color',sox2_color)
+plot(flagged_profs.ps13.psmad,'color',psmad_color)
+plot(flagged_profs.ps13.sox2,'color',sox2_color)
 
