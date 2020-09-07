@@ -2,18 +2,16 @@ function [filtStructArray, filtTargets] = ...
     filtercochleadata(inputData, age, flag, targets)
     
 % Inputs:
-%   > inputData: full struct array containing data for all cochleae
-%   > age: age in dpc
+%   > inputData: Full struct array containing data for all cochleae
+%   > age: Age in dpc
 %   > flag: TRUE or FALSE. TRUE: include only sections flagged as representative of
 %   thie entire organ. FALSE: include all sections.
-%   > targets: cell array containing one or more of the following:
-%       psmad, sox2, jag1, topro3, bmp4
+%   > targets: cell array containing one or more targets in
+%   VALIDTARGETS.csv.
 %
 % Output:
-%   > filtStructArray:
-%   > filtTargets: 
-%   > filtData: struct of entries matching the query. Fieldnames correspond
-%   to target inputs.
+%   > filtStructArray: Data struct with only entries passing filter.
+%   > filtTargets: Uniformly sampled profiles for targets specified.
 
 d = inputData;
 
