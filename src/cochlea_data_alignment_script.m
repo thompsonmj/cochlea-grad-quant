@@ -82,8 +82,6 @@ for iP = 1:nPairs
     end
 end
 
-%%% WORKING
-
 %% Perform alignments
 % Initial Y-alignment
 for iP = 1:nPairs
@@ -102,59 +100,12 @@ for iP = 1:nPairs
     % X-alignment can be performed.
     Y_0_temp(:,:,1) = flagged_profs.(pairs{iP}).(targets{iP,1});
     Y_0_temp(:,:,2) = flagged_profs.(pairs{iP}).(targets{iP,2});
-    
-%     Y_0_temp(:,:,1) = flagged_profs.pj13.psmad;
-%     Y_0_temp(:,:,2) = flagged_profs.pj13.sox2;
-    
+        
     [y_temp,~,~,~] = alignxy(Y_0_temp);
     clear Y_0_temp
-    % Errors: profiles not correct length
-    %   > E12.5 psmad + jag1
-    %   > E13.5 psmad + sox2
-    %
-    %     Optimization terminated: average change in the penalty fitness value less than options.FunctionTolerance
-    %     and constraint violation is less than options.ConstraintTolerance.
     
     flagged_profs.(pairs{iP}).(targets{iP,1}) = y_temp(:,:,1);
     flagged_profs.(pairs{iP}).(targets{iP,2}) = y_temp(:,:,2);
 end
 
-save('filtered-cochlea-data.mat','flagged_profs','flagged_data')
-
-%%
-
-load('filtered-cochlea-data.mat')
-load('colormaps.mat')
-
-figure
-sgtitle('E12.5')
-subplot(1,3,1)
-hold on
-plot(flagged_profs.pj12.psmad,'color',psmad_color)
-plot(flagged_profs.pj12.jag1,'color',jag1_color)
-% Y(:,:,1) = flagged_profs.pj12_prof.psmad;
-% Y(:,:,2) = flagged_profs.pj12_prof.jag1;
-% pj12_sigma_x = positionalerrorn(Y);
-
-subplot(1,3,2)
-hold on
-plot(flagged_profs.ps12.psmad,'color',psmad_color)
-plot(flagged_profs.ps12.sox2,'color',sox2_color)
-
-subplot(1,3,3)
-hold on
-plot(flagged_profs.sj12.sox2,'color',sox2_color)
-plot(flagged_profs.sj12.jag1,'color',jag1_color)
-
-figure
-sgtitle('E13.5')
-subplot(1,3,1)
-hold on
-plot(flagged_profs.pj13.psmad,'color',psmad_color)
-plot(flagged_profs.pj13.jag1,'color',jag1_color)
-
-subplot(1,3,2)
-hold on
-plot(flagged_profs.ps13.psmad,'color',psmad_color)
-plot(flagged_profs.ps13.sox2,'color',sox2_color)
-
+save('filtered-aligned-cochlea-data.mat','flagged_profs','flagged_data')
