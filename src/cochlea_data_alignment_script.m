@@ -1,4 +1,19 @@
-load('F:\projects\cochlea\data\cochlea-data_2020-07-27_17-18-56.mat')
+%% Prep data for alignment.
+% 1. Load raw data.
+% 2. Apply filter for flagged sections (and resample profiles to have
+% uniformly sampled data).
+% 3. Regress nuclear noise.
+% 4. Smooth using 5% of profile length moving average.
+% 5. Include only the middle 80% of each profile to avoid edge effects.
+% 6. Normalize each profile such that the mean extrema are anchored to 0
+% and 1 (except for nuclear signals).
+
+clear
+
+% load('F:\projects\cochlea\data\cochlea-data_2020-07-27_17-18-56.mat')
+% load('F:\projects\cochlea\data\cochlea-data_2020-09-07_17-29-20.mat')
+load('F:\projects\cochlea\data\cochlea-data_2020-09-08_17-20-46.mat')
+
 
 pairs = {'ps12', ...
          'pj12', ...
@@ -19,11 +34,6 @@ ages = [12.5, ...
         13.5];
        
 [nPairs,nTargets] = size(targets);
-
-%% Prep data for alignment.
-% Load data.
-% Regress nuclear noise.
-% Smooth using 5% of profile length moving average.
 
 nX = 1000;
 
@@ -72,7 +82,7 @@ for iP = 1:nPairs
     end
 end
 
-
+%%% WORKING
 
 %% Perform alignments
 % Initial Y-alignment
@@ -93,22 +103,31 @@ for iP = 1:nPairs
     Y_0_temp(:,:,1) = flagged_profs.(pairs{iP}).(targets{iP,1});
     Y_0_temp(:,:,2) = flagged_profs.(pairs{iP}).(targets{iP,2});
     
+%     Y_0_temp(:,:,1) = flagged_profs.pj13.psmad;
+%     Y_0_temp(:,:,2) = flagged_profs.pj13.sox2;
+    
     [y_temp,~,~,~] = alignxy(Y_0_temp);
     clear Y_0_temp
+    % Errors: profiles not correct length
+    %   > E12.5 psmad + jag1
+    %   > E13.5 psmad + sox2
+    %
+    %     Optimization terminated: average change in the penalty fitness value less than options.FunctionTolerance
+    %     and constraint violation is less than options.ConstraintTolerance.
     
     flagged_profs.(pairs{iP}).(targets{iP,1}) = y_temp(:,:,1);
     flagged_profs.(pairs{iP}).(targets{iP,2}) = y_temp(:,:,2);
 end
 
+save('filtered-cochlea-data.mat','flagged_profs','flagged_data')
+
 %%
 
-
-
+load('filtered-cochlea-data.mat')
 load('colormaps.mat')
 
-
-
 figure
+sgtitle('E12.5')
 subplot(1,3,1)
 hold on
 plot(flagged_profs.pj12.psmad,'color',psmad_color)
@@ -116,7 +135,6 @@ plot(flagged_profs.pj12.jag1,'color',jag1_color)
 % Y(:,:,1) = flagged_profs.pj12_prof.psmad;
 % Y(:,:,2) = flagged_profs.pj12_prof.jag1;
 % pj12_sigma_x = positionalerrorn(Y);
-
 
 subplot(1,3,2)
 hold on
@@ -129,6 +147,7 @@ plot(flagged_profs.sj12.sox2,'color',sox2_color)
 plot(flagged_profs.sj12.jag1,'color',jag1_color)
 
 figure
+sgtitle('E13.5')
 subplot(1,3,1)
 hold on
 plot(flagged_profs.pj13.psmad,'color',psmad_color)
