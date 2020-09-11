@@ -102,10 +102,18 @@ for iP = 1:nPairs
     Y_0_temp(:,:,2) = flagged_profs.(pairs{iP}).(targets{iP,2});
         
     [y_temp,~,~,~] = alignxy(Y_0_temp);
+    assert(all(size(y_temp) == size(Y_0_temp)))
     clear Y_0_temp
     
     flagged_profs.(pairs{iP}).(targets{iP,1}) = y_temp(:,:,1);
     flagged_profs.(pairs{iP}).(targets{iP,2}) = y_temp(:,:,2);
 end
 
-save('filtered-aligned-cochlea-data.mat','flagged_profs','flagged_data')
+%%% flagged_profs outputs are not uniform in size (must be due to NaN pad
+%%% removing issues in alignxy)
+
+owd = pwd;
+cd(fullfile('..','..','..','data'))
+save('filtered-aligned-cochlea-data.mat', ...
+    'flagged_profs','flagged_data')
+cd(owd)
