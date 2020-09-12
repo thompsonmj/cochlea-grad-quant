@@ -102,6 +102,9 @@ for iP = 1:nPairs
     Y_0_temp(:,:,2) = flagged_profs.(pairs{iP}).(targets{iP,2});
         
     [y_temp,~,~,~] = alignxy(Y_0_temp);
+    %%% NEED TO APPLY CHANGES TO ASSOCIATED TOPRO3 CHANNELS
+    
+    
     assert(all(size(y_temp) == size(Y_0_temp)))
     clear Y_0_temp
     

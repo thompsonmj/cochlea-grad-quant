@@ -77,27 +77,60 @@ ages = [12.5, ...
 % ps13: sox2
 
 x = [0.1:0.001:0.9];
+figure
+hold on
 for iP = 1:nPairs
+
     for iT = 1:2
         y_temp = flagged_profs.(pairs{iP}).(targets{iP,iT});
         y_temp_mean = mean(y_temp,2);
+        
+        % Row 1
+        subplot(4,nPairs,iP)
+        hold on
+        plot(x,y_temp,'color',color.(targets{iP,iT}))
+        ylim([-0.2,1.2])
+        
+        
         sigX.(pairs{iP}).(targets{iP,iT}) = ...
             positionalerror(y_temp);
         
-        figure
+        % Rows 2 and 3
+        subplot(4,nPairs,iP+3*iT)
+        yyaxis left
+        plot(x',y_temp_mean,'color',color.(targets{iP,iT}),'linew',2)
+        s = shadedErrorBar(x,y_temp',{@mean,@std});
+        s.patch.FaceColor = color.(targets{iP,iT});
+        ylim([-0.2,1.2])
+        
+        yyaxis right
+        plot(x(1:end-1),sigX.(pairs{iP}).(targets{iP,iT}));
+        ylim([0,0.1])
+        ylabel('\sigma_x/L')
+        
+        % Row 4
+        subplot(4,nPairs,iP+9)
         hold on
         yyaxis left
         plot(x',y_temp_mean,'color',color.(targets{iP,iT}),'linew',2)
         s = shadedErrorBar(x,y_temp',{@mean,@std});
         s.patch.FaceColor = color.(targets{iP,iT});
-        ylim([0,1.1])
-        
-        yyaxis right
-        plot(x(1:end-1),sigX.(pairs{iP}).(targets{iP,iT}));
-        ylim([0,0.1])
-        
-    end
-end
+        ylim([-0.2,1.2])
 
+        Y_temp(:,:,iT) = flagged_profs.(pairs{iP}).(targets{iP,iT});
+    
+    end
+    [nPts,~,~] = size(Y_temp);
+
+    subplot(4,nPairs,iP+9)
+    yyaxis right
+    sigX_pair = positionalerrorn(Y_temp)/nPts;
+    plot(x,sigX_pair)
+    ylim([0,0.1])
+    ylabel('\sigma_x/L')
+
+    clear Y_temp
+    
+end
 
 
