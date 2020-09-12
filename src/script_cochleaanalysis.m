@@ -29,7 +29,7 @@ ages = [12.5, ...
        
 [nPairs,nTargets] = size(targets);
 
-%% 
+%% Raw data, Positional error
 % Individual profiles
 % pj12: psmad
 % ps12: psmad
@@ -46,9 +46,7 @@ ages = [12.5, ...
 x = [0.1:0.001:0.9];
 
 figure
-hold on
 for iP = 1:nPairs
-
     for iT = 1:2
         y_temp = flagged_profs.(pairs{iP}).(targets{iP,iT});
         y_temp_mean = mean(y_temp,2);
@@ -58,7 +56,6 @@ for iP = 1:nPairs
         hold on
         plot(x,y_temp,'color',color.(targets{iP,iT}))
         ylim([-0.2,1.2])
-        
         
         sigX.(pairs{iP}).(targets{iP,iT}) = ...
             positionalerror(y_temp);
@@ -87,10 +84,10 @@ for iP = 1:nPairs
 
         Y_temp(:,:,iT) = flagged_profs.(pairs{iP}).(targets{iP,iT});
         
-    
     end
+    
     [nPts,~,~] = size(Y_temp);
-
+    
     subplot(4,nPairs,iP+9)
     yyaxis right
     sigX_pair = positionalerrorn(Y_temp)/nPts;
@@ -102,4 +99,40 @@ for iP = 1:nPairs
     
 end
 
+%% Decoding maps
 
+figure
+for iP = 1:nPairs
+    for iT = 1:2
+        
+        y_temp = flagged_profs.(pairs{iP}).(targets{iP,iT});
+        y_temp_mean = mean(y_temp,2);        
+
+        subplot(3,nPairs,iP)
+        hold on
+        plot(x',y_temp_mean,'color',color.(targets{iP,iT}),'linew',2)
+        s = shadedErrorBar(x,y_temp',{@mean,@std});
+        s.patch.FaceColor = color.(targets{iP,iT});
+        ylim([-0.2,1.2])
+        
+        
+        Y_temp = flagged_profs.(pairs{iP}).(targets{iP,iT});
+        
+        map.(targets{iP,iT}) = decodingmap(Y_temp);
+        
+        map_mean.(targets{iP,iT}) = mean(map.(targets{iP,iT}),3);
+        
+        subplot(3,nPairs,iP+3*iT)
+        imagesc(map_mean.(targets{iP,iT}))
+%         truesize
+        
+%         colormap(cmap.(targets{iP,iT}))
+%         set(gca,'XTickLabel',[]);
+%         set(gca,'YTickLabel',[]);
+        title(targets{iP,iT})
+        xlabel('Actual position (x/L)')
+        ylabel('Implied position (x*/L)')
+
+        
+    end
+end
